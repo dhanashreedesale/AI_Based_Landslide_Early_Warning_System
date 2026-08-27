@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-light-100 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  /* Custom Scrollbar - Light theme */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-light-200 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-light-400 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-light-500;
+  }
+  
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #adb5bd #e9ecef;
+  }
+
+  /* Card styles - Light theme */
+  .card {
+    @apply bg-white rounded-xl border border-light-200 shadow-sm;
+  }
+
+  .card-header {
+    @apply p-4 border-b border-light-200;
+  }
+
+  .card-body {
+    @apply p-4;
+  }
+
+  /* Button styles - Light theme */
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-light-200 hover:bg-light-300 text-gray-700 rounded-lg transition-colors;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 border border-light-300 hover:bg-light-100 rounded-lg transition-colors;
+  }
+
+  /* Input styles - Light theme */
+  .input-primary {
+    @apply bg-light-50 border border-light-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+}
+
+@layer utilities {
+  .glow-red {
+    box-shadow: 0 0 30px rgba(220, 38, 38, 0.15);
+  }
+  
+  .glow-yellow {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.15);
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-yellow-600 to-red-600 bg-clip-text text-transparent;
+  }
+}
+
+/* Leaflet Overrides - Light theme */
+.leaflet-control-container .leaflet-control {
+  @apply bg-white border-light-300 text-gray-700;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-white text-gray-900 rounded-lg shadow-lg;
+}
+
+.leaflet-popup-tip {
+  @apply bg-white;
+}
+
+.leaflet-popup-content {
+  @apply text-gray-900;
+}
+
+.leaflet-container {
+  @apply bg-light-100;
+}
+
+/* Fix Leaflet default styles */
+.leaflet-control-zoom a {
+  @apply bg-white text-gray-700 border-light-300 hover:bg-light-100 hover:text-gray-900;
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f1f3f5 25%, #e9ecef 50%, #f1f3f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
