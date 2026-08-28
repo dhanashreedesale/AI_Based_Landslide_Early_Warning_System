@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, ComposedChart } from 'recharts';
+import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, ComposedChart } from 'recharts';
 
 const RainfallChart = () => {
   const data = [
@@ -16,33 +16,33 @@ const RainfallChart = () => {
       <ComposedChart data={data}>
         <defs>
           <linearGradient id="rainfallGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis dataKey="day" stroke="#6b7280" />
         <YAxis stroke="#6b7280" />
-        <Tooltip 
-          contentStyle={{ 
-            background: '#ffffff', 
+        <Tooltip
+          contentStyle={{
+            background: '#ffffff',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
-            color: '#111827'
+            color: '#111827',
           }}
         />
         <Legend />
-        <Area 
-          type="monotone" 
-          dataKey="rainfall" 
-          stroke="#3b82f6" 
+        <Area
+          type="monotone"
+          dataKey="rainfall"
+          stroke="#3b82f6"
           fill="url(#rainfallGradient)"
           name="Rainfall (mm)"
         />
-        <Line 
-          type="monotone" 
-          dataKey="threshold" 
-          stroke="#ef4444" 
+        <Line
+          type="monotone"
+          dataKey="threshold"
+          stroke="#ef4444"
           strokeDasharray="5 5"
           strokeWidth={2}
           name="Threshold (80mm)"

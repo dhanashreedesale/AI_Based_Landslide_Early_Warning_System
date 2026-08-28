@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FileText, Download, Calendar, Filter, Search, Plus, FileSpreadsheet, FileJson } from 'lucide-react';
+import { FileText, Download, Filter, Search, Plus, FileSpreadsheet, FileJson } from 'lucide-react';
+import { DEFAULT_FOCUS_REGIONS } from '../data/focusRegionsData';
 
 const ReportsPage = () => {
   const [reportType, setReportType] = useState('all');
@@ -7,45 +8,45 @@ const ReportsPage = () => {
   const reports = [
     {
       id: '1',
-      title: 'Daily Risk Summary - Northeast India',
+      title: 'Daily Landslide Risk Summary - 12 Focus Regions',
       type: 'daily',
       date: '2024-01-15',
       format: 'pdf',
-      size: '2.4 MB',
+      size: '3.2 MB',
       status: 'generated',
-      description: 'Summary of all risk zones with alerts and predictions'
+      description: 'Comprehensive risk summary covering Uttarakhand, HP, J&K, Ladakh, Sikkim & NE States',
     },
     {
       id: '2',
-      title: 'Weekly Alert Analysis',
+      title: 'Weekly Himalayan & Northeast Telemetry Analysis',
       type: 'weekly',
       date: '2024-01-08',
       format: 'csv',
-      size: '1.8 MB',
+      size: '2.4 MB',
       status: 'generated',
-      description: 'Analysis of all alerts generated in the past week'
+      description: 'InSAR deformation and IMD rainfall threshold analysis',
     },
     {
       id: '3',
-      title: 'Monthly Performance Report',
+      title: 'Monthly Model Accuracy & False Positive Audit',
       type: 'monthly',
       date: '2024-01-01',
       format: 'pdf',
-      size: '5.6 MB',
+      size: '6.1 MB',
       status: 'generated',
-      description: 'Model performance metrics and accuracy analysis'
-    }
+      description: 'AI model performance and sensor cross-validation report',
+    },
   ];
 
   const getFormatIcon = (format: string) => {
     switch (format) {
-      case 'pdf': 
+      case 'pdf':
         return <FileText className="w-4 h-4 text-red-500" />;
-      case 'csv': 
+      case 'csv':
         return <FileSpreadsheet className="w-4 h-4 text-green-500" />;
-      case 'json': 
+      case 'json':
         return <FileJson className="w-4 h-4 text-blue-500" />;
-      default: 
+      default:
         return <FileText className="w-4 h-4 text-gray-400" />;
     }
   };
@@ -57,13 +58,13 @@ const ReportsPage = () => {
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
               <FileText className="w-6 h-6 text-purple-600" />
-              Reports
+              Reports & Export Center
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Generate and manage reports</p>
+            <p className="text-sm text-gray-500 mt-1">Generate telemetry and risk analysis reports for focus regions</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-sm font-semibold text-sm">
             <Plus className="w-4 h-4" />
-            Generate Report
+            Generate Custom Report
           </button>
         </div>
       </div>
@@ -72,36 +73,39 @@ const ReportsPage = () => {
         <h3 className="text-lg font-semibold mb-4 text-gray-900">Quick Generate Report</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Report Type</label>
-            <select className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
-              <option>Daily Summary</option>
-              <option>Weekly Analysis</option>
-              <option>Monthly Report</option>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Report Type</label>
+            <select className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option>Daily Risk Summary</option>
+              <option>Weekly Telemetry Analysis</option>
+              <option>Monthly Performance Audit</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Date Range</label>
-            <input type="date" className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Date Range</label>
+            <input type="date" className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Format</label>
-            <select className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
-              <option>PDF</option>
-              <option>CSV</option>
-              <option>JSON</option>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Format</label>
+            <select className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option>PDF Document</option>
+              <option>CSV Telemetry Data</option>
+              <option>JSON API Data</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Zone</label>
-            <select className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
-              <option>All Zones</option>
-              <option>East Khasi Hills</option>
-              <option>West Garo Hills</option>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Focus Region</label>
+            <select className="w-full px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option>All 12 Focus Regions (Default)</option>
+              {DEFAULT_FOCUS_REGIONS.map((region) => (
+                <option key={region} value={region}>
+                  {region}
+                </option>
+              ))}
             </select>
           </div>
         </div>
-        <button className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-sm">
-          Generate Now
+        <button className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+          Generate Report
         </button>
       </div>
 
@@ -137,8 +141,8 @@ const ReportsPage = () => {
                 <div className="flex items-center gap-4">
                   {getFormatIcon(report.format)}
                   <div>
-                    <h4 className="font-semibold text-gray-900">{report.title}</h4>
-                    <p className="text-sm text-gray-600">{report.description}</p>
+                    <h4 className="font-semibold text-gray-900 text-sm">{report.title}</h4>
+                    <p className="text-xs text-gray-600 mt-0.5">{report.description}</p>
                     <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
                       <span>{report.date}</span>
                       <span>{report.size}</span>

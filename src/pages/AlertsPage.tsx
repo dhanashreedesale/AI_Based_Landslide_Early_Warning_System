@@ -1,23 +1,36 @@
-import { useState } from 'react';
-import { AlertTriangle, Filter, Search, Clock, MapPin, ChevronDown } from 'lucide-react';
+import { AlertTriangle, Filter, Search, Clock, MapPin, ChevronDown, ShieldCheck } from 'lucide-react';
+import { useMapStore } from '../store';
 
 const AlertsPage = () => {
+  const { selectedRegions } = useMapStore();
+
   const alerts = [
-    { id: 1, severity: 'critical', title: 'Landslide Imminent', location: 'East Khasi Hills', time: '2 min ago', status: 'active' },
-    { id: 2, severity: 'high', title: 'High Risk Detected', location: 'West Garo Hills', time: '15 min ago', status: 'active' },
-    { id: 3, severity: 'medium', title: 'Soil Moisture Warning', location: 'Dima Hasao', time: '42 min ago', status: 'acknowledged' },
-    { id: 4, severity: 'critical', title: 'Deformation Alert', location: 'Karbi Anglong', time: '1 hour ago', status: 'active' },
-    { id: 5, severity: 'low', title: 'Rainfall Advisory', location: 'Cachar', time: '2 hours ago', status: 'resolved' },
+    { id: 1, severity: 'critical', title: 'Slope Subsidence Imminent', location: 'Joshimath Sector', state: 'Uttarakhand', time: '2 min ago', status: 'active' },
+    { id: 2, severity: 'critical', title: 'Torrential Downpour Landslide', location: 'Sohra / Cherrapunji', state: 'Meghalaya', time: '5 min ago', status: 'active' },
+    { id: 3, severity: 'high', title: 'Highway Slumping on NH-3', location: 'Kullu-Manali Corridor', state: 'Himachal Pradesh', time: '12 min ago', status: 'active' },
+    { id: 4, severity: 'critical', title: 'Mudslide & Shooting Stones', location: 'Ramban-Banihal NH-44', state: 'Jammu & Kashmir', time: '25 min ago', status: 'active' },
+    { id: 5, severity: 'high', title: 'Debris Flow Slope Warning', location: 'Gangtok-Pakyong Urban Slope', state: 'Sikkim', time: '38 min ago', status: 'acknowledged' },
+    { id: 6, severity: 'medium', title: 'Railway Corridor Displacement', location: 'Haflong-Jatinga Ridge', state: 'Assam', time: '50 min ago', status: 'active' },
+    { id: 7, severity: 'high', title: 'Steep Slope Settlement', location: 'Aizawl City Ridge', state: 'Mizoram', time: '1 hour ago', status: 'acknowledged' },
+    { id: 8, severity: 'low', title: 'Highland Border Road Rockfall', location: 'Tawang-Sela Pass Corridor', state: 'Arunachal Pradesh', time: '2 hours ago', status: 'resolved' },
   ];
+
+  const filteredAlerts = alerts.filter((alert) => selectedRegions.includes(alert.state));
 
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
-            <AlertTriangle className="w-6 h-6 text-yellow-600" />
-            Alert Management
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
+              <AlertTriangle className="w-6 h-6 text-red-600" />
+              Landslide Telemetry Alert Management
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Live alerts filtered by 12 default focus regions (Himalayas & Northeast India)
+            </p>
+          </div>
+
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-light-50 rounded-lg px-3 py-2 border border-light-200">
               <Search className="w-4 h-4 text-gray-400" />
@@ -43,43 +56,65 @@ const AlertsPage = () => {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Severity</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">State / Focus Region</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location Sector</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-light-200">
-              {alerts.map((alert) => (
+              {filteredAlerts.map((alert) => (
                 <tr key={alert.id} className="hover:bg-light-50 transition-colors cursor-pointer">
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                      alert.severity === 'critical' ? 'bg-red-50 text-red-700' :
-                      alert.severity === 'high' ? 'bg-orange-50 text-orange-700' :
-                      alert.severity === 'medium' ? 'bg-yellow-50 text-yellow-700' :
-                      'bg-blue-50 text-blue-700'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                        alert.severity === 'critical'
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : alert.severity === 'high'
+                          ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                          : alert.severity === 'medium'
+                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}
+                    >
                       <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                      {alert.severity}
+                      {alert.severity.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{alert.title}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-gray-400" />
-                    {alert.location}
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">{alert.title}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-blue-700">
+                    <span className="inline-flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded text-xs">
+                      <ShieldCheck className="w-3 h-3 text-blue-600" />
+                      {alert.state}
+                    </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {alert.time}
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                      {alert.location}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {alert.time}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-                      alert.status === 'active' ? 'bg-green-50 text-green-700' :
-                      alert.status === 'acknowledged' ? 'bg-yellow-50 text-yellow-700' :
-                      'bg-gray-100 text-gray-500'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        alert.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                      }`} />
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        alert.status === 'active'
+                          ? 'bg-green-50 text-green-700'
+                          : alert.status === 'acknowledged'
+                          ? 'bg-yellow-50 text-yellow-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          alert.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                        }`}
+                      />
                       {alert.status}
                     </span>
                   </td>

@@ -1,139 +1,148 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup, CircleMarker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, Filter, ChevronDown, Plus, Minus, MapPin, Layers, AlertCircle } from 'lucide-react';
+import { Search, MapPin, Layers, ShieldAlert, CheckCircle2, RotateCcw } from 'lucide-react';
+import { useMapStore } from '../store';
+import { FOCUS_REGIONS_DATA, MAJOR_FOCUS_CITIES, DEFAULT_FOCUS_REGIONS } from '../data/focusRegionsData';
+import { RegionFilterControl } from '../components/Dashboard/RegionFilterControl';
 
 const RiskMapPage = () => {
-  const [drawMode, setDrawMode] = useState(false);
+  const { selectedRegions, center, zoom, resetToDefaultRegions } = useMapStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLayer, setSelectedLayer] = useState<'all' | 'severe' | 'high'>('all');
 
-  const zones = [
-    {
-      id: '1',
-      name: 'East Khasi Hills',
-      district: 'Meghalaya',
-      riskLevel: 'severe',
-      coordinates: [[[25.6, 91.8], [25.7, 91.95], [25.8, 91.9], [25.85, 91.75], [25.7, 91.65], [25.6, 91.7], [25.55, 91.8], [25.6, 91.8]]],
-      stats: { rainfall: 178, soilMoisture: 82, deformation: -14.2, riskScore: 87.4 }
-    },
-    {
-      id: '2',
-      name: 'West Garo Hills',
-      district: 'Meghalaya',
-      riskLevel: 'high',
-      coordinates: [[[25.5, 90.0], [25.6, 90.2], [25.7, 90.3], [25.8, 90.15], [25.7, 89.95], [25.55, 89.9], [25.5, 90.0]]],
-      stats: { rainfall: 145, soilMoisture: 76, deformation: -8.7, riskScore: 72.1 }
-    },
-    {
-      id: '3',
-      name: 'Dima Hasao',
-      district: 'Assam',
-      riskLevel: 'high',
-      coordinates: [[[25.2, 92.8], [25.4, 93.0], [25.5, 93.2], [25.6, 93.1], [25.5, 92.9], [25.3, 92.7], [25.2, 92.8]]],
-      stats: { rainfall: 156, soilMoisture: 74, deformation: -9.3, riskScore: 74.8 }
-    },
-    {
-      id: '4',
-      name: 'Karbi Anglong',
-      district: 'Assam',
-      riskLevel: 'medium',
-      coordinates: [[[26.0, 92.8], [26.2, 93.0], [26.3, 93.2], [26.4, 93.0], [26.2, 92.7], [26.0, 92.8]]],
-      stats: { rainfall: 112, soilMoisture: 65, deformation: -3.1, riskScore: 58.2 }
-    },
-    {
-      id: '5',
-      name: 'Cachar',
-      district: 'Assam',
-      riskLevel: 'medium',
-      coordinates: [[[24.8, 92.7], [24.9, 92.9], [25.0, 93.0], [25.1, 92.85], [25.0, 92.7], [24.85, 92.65], [24.8, 92.7]]],
-      stats: { rainfall: 98, soilMoisture: 62, deformation: -2.8, riskScore: 52.6 }
-    }
-  ];
+  const activeZones = useMemo(() => {
+    return FOCUS_REGIONS_DATA.filter((zone) => {
+      const matchesRegion = selectedRegions.includes(zone.state);
+      const matchesSearch =
+        searchQuery === '' ||
+        zone.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        zone.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        zone.state.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesLayer =
+        selectedLayer === 'all' ||
+        (selectedLayer === 'severe' && zone.riskLevel === 'severe') ||
+        (selectedLayer === 'high' && (zone.riskLevel === 'severe' || zone.riskLevel === 'high'));
+      return matchesRegion && matchesSearch && matchesLayer;
+    });
+  }, [selectedRegions, searchQuery, selectedLayer]);
+
+  const activeCities = useMemo(() => {
+    return MAJOR_FOCUS_CITIES.filter((city) => selectedRegions.includes(city.state));
+  }, [selectedRegions]);
+
+  const severeCount = activeZones.filter((z) => z.riskLevel === 'severe').length;
+  const highCount = activeZones.filter((z) => z.riskLevel === 'high').length;
 
   const getRiskColor = (level: string) => {
     const colors = {
       low: '#22c55e',
       medium: '#f59e0b',
       high: '#ef4444',
-      severe: '#dc2626'
+      severe: '#dc2626',
     };
     return colors[level as keyof typeof colors] || '#6b7280';
   };
 
   return (
     <div className="space-y-4">
-      {/* Stats Cards - Light theme */}
+      {/* Top Banner */}
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-blue-400" />
+              Landslide Live Risk Map — National Focus Regions
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40">
+              12 Default Regions Active
+            </span>
+          </div>
+          <p className="text-xs text-blue-200 mt-1">
+            Covering primary high-hazard landslide belts in Uttarakhand, Himachal Pradesh, Jammu & Kashmir, Ladakh, Sikkim, Arunachal Pradesh, Assam, Meghalaya, Nagaland, Manipur, Mizoram & Tripura.
+          </p>
+        </div>
+
+        <button
+          onClick={resetToDefaultRegions}
+          className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-400/30 rounded-lg text-xs font-semibold transition-colors"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Reset 12 Focus Regions
+        </button>
+      </div>
+
+      {/* Overview Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-sm text-gray-500">Total Zones</div>
-          <div className="text-2xl font-bold text-gray-900">{zones.length}</div>
-        </div>
-        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-sm text-gray-500">High Risk Zones</div>
-          <div className="text-2xl font-bold text-red-600">
-            {zones.filter(z => z.riskLevel === 'severe' || z.riskLevel === 'high').length}
+          <div className="text-xs text-gray-500 font-medium">Selected Focus Regions</div>
+          <div className="text-2xl font-bold text-gray-900 flex items-center justify-between">
+            <span>{selectedRegions.length} / {DEFAULT_FOCUS_REGIONS.length}</span>
+            <CheckCircle2 className="w-5 h-5 text-blue-600" />
           </div>
         </div>
         <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-sm text-gray-500">Active Alerts</div>
-          <div className="text-2xl font-bold text-yellow-600">4</div>
+          <div className="text-xs text-gray-500 font-medium">Active High Risk Zones</div>
+          <div className="text-2xl font-bold text-red-600 flex items-center justify-between">
+            <span>{severeCount + highCount}</span>
+            <span className="text-xs font-semibold bg-red-50 text-red-700 px-2 py-0.5 rounded">
+              {severeCount} Severe
+            </span>
+          </div>
         </div>
         <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-sm text-gray-500">Districts</div>
-          <div className="text-2xl font-bold text-blue-600">12</div>
+          <div className="text-xs text-gray-500 font-medium">Active Telemetry Alerts</div>
+          <div className="text-2xl font-bold text-yellow-600">8</div>
+        </div>
+        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
+          <div className="text-xs text-gray-500 font-medium font-medium">Monitored Districts</div>
+          <div className="text-2xl font-bold text-blue-600">36</div>
         </div>
       </div>
 
-      {/* Controls Bar - Light theme */}
-      <div className="bg-white rounded-xl border border-light-200 p-4 relative z-10 shadow-sm">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search district or region..."
-              className="bg-light-50 border border-light-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-700 hover:bg-light-100 transition-colors flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Filter
-              <ChevronDown className="w-3 h-3" />
-            </button>
-            <button 
-              onClick={() => setDrawMode(!drawMode)}
-              className={`px-3 py-2 border rounded-lg text-sm transition-colors flex items-center gap-2 ${
-                drawMode 
-                  ? 'bg-blue-50 border-blue-500 text-blue-600' 
-                  : 'bg-light-50 border-light-300 text-gray-700 hover:bg-light-100'
+      {/* Controls Bar */}
+      <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+          <Search className="w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search district, state, or zone (e.g. Joshimath, Sohra, Kullu)..."
+            className="bg-light-50 border border-light-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <RegionFilterControl />
+
+          <div className="flex items-center gap-1 bg-light-50 p-1 border border-light-300 rounded-lg">
+            <button
+              onClick={() => setSelectedLayer('all')}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+                selectedLayer === 'all' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <MapPin className="w-4 h-4" />
-              Draw Region
+              All Zones ({activeZones.length})
             </button>
-            <button className="px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-700 hover:bg-light-100 transition-colors flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              Layers
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1 ml-auto">
-            <button className="p-2 bg-light-50 border border-light-300 rounded-lg hover:bg-light-100 transition-colors">
-              <Plus className="w-4 h-4 text-gray-600" />
-            </button>
-            <button className="p-2 bg-light-50 border border-light-300 rounded-lg hover:bg-light-100 transition-colors">
-              <Minus className="w-4 h-4 text-gray-600" />
+            <button
+              onClick={() => setSelectedLayer('severe')}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+                selectedLayer === 'severe' ? 'bg-red-600 text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Severe Only ({severeCount})
             </button>
           </div>
         </div>
       </div>
 
-      {/* Map Container */}
-      <div className="bg-white rounded-xl border border-light-200 overflow-hidden h-[550px] relative shadow-sm">
+      {/* Interactive Leaflet Map */}
+      <div className="bg-white rounded-xl border border-light-200 overflow-hidden h-[600px] relative shadow-sm">
         <MapContainer
-          center={[25.8, 92.5]}
-          zoom={7.5}
+          key={`risk-map-page-${selectedRegions.length}`}
+          center={center}
+          zoom={zoom}
           className="h-full w-full"
           style={{ background: '#f0f2f5' }}
         >
@@ -141,150 +150,112 @@ const RiskMapPage = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          
-          {zones.map((zone) => (
+
+          {activeZones.map((zone) => (
             <Polygon
               key={zone.id}
-              positions={zone.coordinates}
+              positions={zone.coordinates as any}
               pathOptions={{
                 fillColor: getRiskColor(zone.riskLevel),
-                fillOpacity: 0.35,
+                fillOpacity: 0.45,
                 color: getRiskColor(zone.riskLevel),
                 weight: 3,
-                opacity: 0.8,
-                dashArray: zone.riskLevel === 'severe' ? '8,4' : undefined,
+                opacity: 0.85,
+                dashArray: zone.riskLevel === 'severe' ? '6,4' : undefined,
               }}
             >
               <Popup>
-                <div className="text-gray-900 min-w-[200px] bg-white rounded-lg p-2">
-                  <h3 className="font-bold">{zone.name}</h3>
-                  <p className="text-sm text-gray-600">{zone.district}</p>
-                  <div className="mt-2 space-y-1 text-sm border-t border-gray-200 pt-2">
+                <div className="text-gray-900 min-w-[220px] bg-white rounded-lg p-2">
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-1 mb-2">
+                    <h3 className="font-bold text-sm text-gray-900">{zone.name}</h3>
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white"
+                      style={{ backgroundColor: getRiskColor(zone.riskLevel) }}
+                    >
+                      {zone.riskLevel.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">{zone.district}, {zone.state}</p>
+
+                  <div className="mt-2 space-y-1 text-xs border-t border-gray-200 pt-2">
                     <div className="flex justify-between">
-                      <span>Risk Level</span>
-                      <span className="font-bold" style={{ color: getRiskColor(zone.riskLevel) }}>
-                        {zone.riskLevel.toUpperCase()}
-                      </span>
+                      <span className="text-gray-500">Risk Score</span>
+                      <span className="font-bold text-gray-900">{zone.stats.riskScore}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Risk Score</span>
-                      <span className="font-bold">{zone.stats.riskScore}%</span>
+                      <span className="text-gray-500">Rainfall</span>
+                      <span className="font-bold text-blue-600">{zone.stats.rainfall} mm</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Rainfall</span>
-                      <span className="font-bold text-blue-600">{zone.stats.rainfall}mm</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Soil Moisture</span>
+                      <span className="text-gray-500">Soil Saturation</span>
                       <span className="font-bold text-green-600">{zone.stats.soilMoisture}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Deformation</span>
-                      <span className="font-bold text-red-600">{zone.stats.deformation}mm</span>
+                      <span className="text-gray-500">Deformation</span>
+                      <span className="font-bold text-red-600">{zone.stats.deformation} mm</span>
                     </div>
+                  </div>
+                  <div className="mt-2 pt-1 border-t border-gray-100 text-[11px] font-medium text-red-700">
+                    ⚠️ {zone.keyThreat}
                   </div>
                 </div>
               </Popup>
             </Polygon>
           ))}
 
-          {/* City Markers */}
-          {[
-            { name: 'Shillong', pos: [25.5788, 91.8933] },
-            { name: 'Guwahati', pos: [26.1445, 91.7362] },
-            { name: 'Imphal', pos: [24.8170, 93.9368] },
-          ].map((city, idx) => (
+          {/* Major City Markers */}
+          {activeCities.map((city, idx) => (
             <CircleMarker
               key={idx}
-              center={city.pos as [number, number]}
-              radius={5}
+              center={city.pos}
+              radius={6}
               pathOptions={{
-                fillColor: '#1a1a3e',
-                color: '#1a1a3e',
+                fillColor: '#1e293b',
+                color: '#ffffff',
                 weight: 2,
-                fillOpacity: 0.8,
+                fillOpacity: 0.9,
               }}
             >
               <Popup>
-                <div className="text-gray-900">
-                  <strong>{city.name}</strong>
+                <div className="text-gray-900 text-xs">
+                  <strong>{city.name}</strong> ({city.state})
                 </div>
               </Popup>
             </CircleMarker>
           ))}
         </MapContainer>
 
-        {/* Layer Controls - Light theme */}
-        <div className="absolute top-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg border border-light-200 p-3 shadow-xl min-w-[150px]">
-          <p className="text-xs text-gray-600 font-medium mb-2 flex items-center gap-1">
-            <Layers className="w-3 h-3" />
-            Map Layers
-          </p>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-gray-900 transition-colors">
-              <input 
-                type="radio" 
-                name="layer" 
-                value="single" 
-                defaultChecked 
-                className="w-3 h-3 accent-blue-500" 
-              />
-              Single Selection
-            </label>
-            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-gray-900 transition-colors">
-              <input 
-                type="radio" 
-                name="layer" 
-                value="multiple" 
-                className="w-3 h-3 accent-blue-500" 
-              />
-              Multiple Selection
-            </label>
-          </div>
-          <div className="mt-3 pt-3 border-t border-light-200 space-y-2">
-            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-gray-900 transition-colors">
-              <input type="checkbox" defaultChecked className="w-3 h-3 rounded accent-blue-500" />
-              🌧️ Rainfall
-            </label>
-            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-gray-900 transition-colors">
-              <input type="checkbox" className="w-3 h-3 rounded accent-blue-500" />
-              💧 Soil Moisture
-            </label>
-            <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-gray-900 transition-colors">
-              <input type="checkbox" className="w-3 h-3 rounded accent-blue-500" />
-              📐 Deformation
-            </label>
-          </div>
-        </div>
-
-        {/* Legend - Light theme */}
+        {/* Legend */}
         <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg border border-light-200 p-3 shadow-xl">
-          <p className="text-xs text-gray-600 font-medium mb-1.5">Risk Levels</p>
+          <p className="text-xs text-gray-700 font-bold mb-1.5 flex items-center gap-1">
+            <Layers className="w-3.5 h-3.5 text-blue-600" />
+            Landslide Hazard Levels
+          </p>
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs">
-              <span className="w-4 h-4 bg-risk-severe rounded opacity-70 border border-risk-severe"></span>
-              <span className="text-gray-700">Severe</span>
+              <span className="w-3.5 h-3.5 bg-red-600 rounded border border-red-700"></span>
+              <span className="text-gray-700">Severe Hazard (≥85%)</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="w-4 h-4 bg-risk-high rounded opacity-70 border border-risk-high"></span>
-              <span className="text-gray-700">High</span>
+              <span className="w-3.5 h-3.5 bg-orange-500 rounded border border-orange-600"></span>
+              <span className="text-gray-700">High Hazard (70-84%)</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="w-4 h-4 bg-risk-medium rounded opacity-70 border border-risk-medium"></span>
-              <span className="text-gray-700">Medium</span>
+              <span className="w-3.5 h-3.5 bg-amber-500 rounded border border-amber-600"></span>
+              <span className="text-gray-700">Medium Hazard (50-69%)</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="w-4 h-4 bg-risk-low rounded opacity-70 border border-risk-low"></span>
-              <span className="text-gray-700">Low</span>
+              <span className="w-3.5 h-3.5 bg-emerald-500 rounded border border-emerald-600"></span>
+              <span className="text-gray-700">Low Hazard (&lt;50%)</span>
             </div>
           </div>
         </div>
 
-        {/* Info Box - Light theme */}
+        {/* Info Overlay */}
         <div className="absolute top-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg border border-light-200 p-3 shadow-xl">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <AlertCircle className="w-4 h-4 text-blue-500" />
-            <span>Click on any zone for details</span>
+          <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
+            <MapPin className="w-4 h-4 text-blue-600" />
+            <span>Showing {activeZones.length} landslide hazard zones across {selectedRegions.length} focus regions</span>
           </div>
         </div>
       </div>
