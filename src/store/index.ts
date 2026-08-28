@@ -1,7 +1,9 @@
 import { create } from 'zustand';
+import { DEFAULT_FOCUS_REGIONS } from '../data/focusRegionsData';
 
 interface MapState {
   selectedZone: string | null;
+  selectedRegions: string[];
   zoom: number;
   center: [number, number];
   layers: {
@@ -11,13 +13,17 @@ interface MapState {
     susceptibility: boolean;
   };
   setSelectedZone: (zoneId: string | null) => void;
+  setSelectedRegions: (regions: string[]) => void;
+  toggleRegion: (region: string) => void;
+  resetToDefaultRegions: () => void;
   toggleLayer: (layer: keyof MapState['layers']) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
   selectedZone: null,
-  zoom: 7,
-  center: [25.8, 92.5],
+  selectedRegions: [...DEFAULT_FOCUS_REGIONS],
+  zoom: 5.5,
+  center: [29.5, 84.5],
   layers: {
     rainfall: true,
     soilMoisture: false,
@@ -25,6 +31,22 @@ export const useMapStore = create<MapState>((set) => ({
     susceptibility: true,
   },
   setSelectedZone: (zoneId) => set({ selectedZone: zoneId }),
+  setSelectedRegions: (regions) => set({ selectedRegions: regions }),
+  toggleRegion: (region) =>
+    set((state) => {
+      const exists = state.selectedRegions.includes(region);
+      return {
+        selectedRegions: exists
+          ? state.selectedRegions.filter((r) => r !== region)
+          : [...state.selectedRegions, region],
+      };
+    }),
+  resetToDefaultRegions: () =>
+    set({
+      selectedRegions: [...DEFAULT_FOCUS_REGIONS],
+      center: [29.5, 84.5],
+      zoom: 5.5,
+    }),
   toggleLayer: (layer) =>
     set((state) => ({
       layers: {
