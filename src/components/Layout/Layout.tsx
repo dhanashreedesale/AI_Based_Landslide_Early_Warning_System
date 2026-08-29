@@ -7,7 +7,9 @@ import {
   Database, 
   FileText,
   Settings,
-  ShieldAlert
+  AlertTriangle,
+  Camera,  // ✅ Make sure this is imported
+  Layers
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -19,66 +21,68 @@ const Layout = ({ children }: LayoutProps) => {
 
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/risk-map', icon: Map, label: 'Live Risk Map' },
+    { path: '/risk-map', icon: Map, label: 'Risk Map' },
+    { path: '/heatmap', icon: Layers, label: 'Heatmap' },
     { path: '/alerts', icon: Bell, label: 'Alerts' },
+    { path: '/field-reports', icon: Camera, label: 'Field Reports' },  // ✅ This should be here
     { path: '/data-sources', icon: Database, label: 'Data Sources' },
     { path: '/reports', icon: FileText, label: 'Reports' },
   ];
 
   return (
-    <div className="min-h-screen bg-light-100 text-gray-900">
-      <header className="bg-white border-b border-light-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-r from-red-600 to-amber-500 p-2 rounded-lg shadow-md text-white">
-                <ShieldAlert className="w-6 h-6" />
+    <div className="min-h-screen bg-gray-100 text-gray-900">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-3">
+          <div className="flex items-center justify-between h-14">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="bg-gradient-to-r from-yellow-500 to-red-500 p-1.5 rounded-lg shadow-md">
+                <AlertTriangle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-extrabold bg-gradient-to-r from-blue-700 via-indigo-700 to-red-600 bg-clip-text text-transparent">
-                  National Landslide Early Warning
+                <h1 className="text-sm font-bold bg-gradient-to-r from-yellow-600 to-red-600 bg-clip-text text-transparent">
+                  NER Landslide Warning
                 </h1>
-                <p className="text-[11px] font-medium text-gray-500">Focus Regions: 12 Himalayan & NE States/UTs</p>
+                <p className="text-[10px] text-gray-500 leading-tight">Early Warning System v2.0</p>
               </div>
             </div>
 
-            <nav className="hidden md:flex items-center gap-1">
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-0.5">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all relative ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-sm ${
                       isActive 
-                        ? 'bg-blue-50 text-blue-700 font-bold' 
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-light-100 font-medium'
+                        ? 'bg-blue-50 text-blue-700' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
-                    <span className="text-sm">{item.label}</span>
-                    {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                    )}
+                    <span className="text-xs font-medium">{item.label}</span>
                   </Link>
                 );
               })}
             </nav>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-xs font-semibold bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="hidden sm:inline">Telemetry Online</span>
+            {/* Right side */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-gray-600 hidden sm:inline">Online</span>
               </div>
-              <button className="p-2 hover:bg-light-100 rounded-lg transition-colors text-gray-600 hover:text-gray-900">
-                <Settings className="w-5 h-5" />
+              <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-gray-900">
+                <Settings className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-5">
+      <main className="max-w-7xl mx-auto px-4 py-4">
         {children}
       </main>
     </div>
