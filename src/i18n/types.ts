@@ -1,0 +1,255 @@
+export type LanguageCode =
+  | 'en'
+  | 'hi'
+  | 'as'
+  | 'bn'
+  | 'ne'
+  | 'mni'
+  | 'lus'
+  | 'kha'
+  | 'doi'
+  | 'ur';
+
+export interface LanguageInfo {
+  code: LanguageCode;
+  name: string;
+  nativeName: string;
+  flag: string;
+  category: 'national' | 'regional';
+  regionTarget: string;
+  direction?: 'ltr' | 'rtl';
+}
+
+export interface TranslationSchema {
+  common: {
+    systemTitle: string;
+    focusRegionsSubtitle: string;
+    telemetryOnline: string;
+    active: string;
+    inactive: string;
+    live: string;
+    details: string;
+    download: string;
+    search: string;
+    filter: string;
+    clear: string;
+    reset: string;
+    done: string;
+    loading: string;
+    unknown: string;
+    all: string;
+    status: string;
+    type: string;
+    date: string;
+    time: string;
+    severity: string;
+    location: string;
+    state: string;
+    district: string;
+    action: string;
+    refreshAll: string;
+    viewDetails: string;
+    close: string;
+    threat: string;
+  };
+  nav: {
+    dashboard: string;
+    riskMap: string;
+    alerts: string;
+    dataSources: string;
+    reports: string;
+  };
+  regions: {
+    uttarakhand: string;
+    himachalPradesh: string;
+    jammuKashmir: string;
+    ladakh: string;
+    sikkim: string;
+    arunachalPradesh: string;
+    assam: string;
+    meghalaya: string;
+    nagaland: string;
+    manipur: string;
+    mizoram: string;
+    tripura: string;
+  };
+  regionGroups: {
+    westernCentralHimalayas: string;
+    easternHimalayasNortheast: string;
+    nwHimalayasShort: string;
+    neEastShort: string;
+  };
+  filterModal: {
+    buttonLabel: string;
+    resetButton: string;
+    modalTitle: string;
+    defaultFocusActive: string;
+    modalDescription: string;
+    all12Regions: string;
+    resetTo12: string;
+  };
+  dashboard: {
+    bannerTitle: string;
+    bannerBadge: string;
+    bannerDescription: string;
+    activeAlertsLabel: string;
+    highRiskZonesLabel: string;
+    focusRegionsLabel: string;
+    dataSyncLabel: string;
+    defaultActive: string;
+    filtered: string;
+    operational100: string;
+    liveMapTitle: string;
+    liveMapSubtitle: string;
+    liveAlertsTitle: string;
+    liveAlertsSubtitle: string;
+    activeCountBadge: string;
+    rainfallChartTitle: string;
+    rainfallChartSubtitle: string;
+    criticalThresholdCallout: string;
+  };
+  statsDetails: {
+    severeAlertsDesc: string;
+    highAlertsDesc: string;
+    mediumAlertsDesc: string;
+    zonesUttarakhand: string;
+    zonesHimachal: string;
+    zonesJK: string;
+    zonesSikkimNE: string;
+    sensorInSAR: string;
+    sensorIMD: string;
+    sensorDEM: string;
+    sensorGround: string;
+  };
+  map: {
+    showingZonesAcross: string;
+    fitAllRegions: string;
+    hazardLevelsTitle: string;
+    riskLevelsTitle: string;
+    majorFocusCities: string;
+    sensorTelemetryBtn: string;
+    issueAdvisoryBtn: string;
+    riskScore: string;
+    rainfall24h: string;
+    soilSaturation: string;
+    deformation: string;
+    riskIndex: string;
+    primaryThreat: string;
+    districtDistrict: string;
+    monitoringRegionsText: string;
+    all12DefaultActive: string;
+    filteredRegionsActive: string;
+    allZonesBtn: string;
+    severeOnlyBtn: string;
+    searchPlaceholder: string;
+    activeHighRiskZonesCard: string;
+    activeTelemetryAlertsCard: string;
+    monitoredDistrictsCard: string;
+    selectedFocusRegionsCard: string;
+    severeBadge: string;
+    evacAlertMessage: string;
+    telemetryAlertMessage: string;
+  };
+  hazardLevels: {
+    severe: string;
+    high: string;
+    medium: string;
+    low: string;
+    severeDesc: string;
+    highDesc: string;
+    mediumDesc: string;
+    lowDesc: string;
+  };
+  alerts: {
+    pageTitle: string;
+    pageSubtitle: string;
+    searchPlaceholder: string;
+    noActiveAlerts: string;
+    colSeverity: string;
+    colTitle: string;
+    colState: string;
+    colLocation: string;
+    colTime: string;
+    colStatus: string;
+    statusActive: string;
+    statusAcknowledged: string;
+    statusResolved: string;
+    soilLabel: string;
+    deformLabel: string;
+  };
+  dataSources: {
+    pageTitle: string;
+    pageSubtitle: string;
+    searchPlaceholder: string;
+    typeAll: string;
+    typeSatellite: string;
+    typeWeather: string;
+    typeTerrain: string;
+    typeSeismic: string;
+    statusLive: string;
+    statusMock: string;
+    statusOffline: string;
+    srcSentinel2Name: string;
+    srcSentinel2Desc: string;
+    srcSentinel1Name: string;
+    srcSentinel1Desc: string;
+    srcIMDRainfallName: string;
+    srcIMDRainfallDesc: string;
+    srcDEMTerrainName: string;
+    srcDEMTerrainDesc: string;
+    srcSoilMoistureName: string;
+    srcSoilMoistureDesc: string;
+    srcGeologyName: string;
+    srcGeologyDesc: string;
+    srcSeismicityName: string;
+    srcSeismicityDesc: string;
+  };
+  reports: {
+    pageTitle: string;
+    pageSubtitle: string;
+    generateCustomBtn: string;
+    quickGenerateTitle: string;
+    lblReportType: string;
+    lblDateRange: string;
+    lblFormat: string;
+    lblFocusRegion: string;
+    optDailySummary: string;
+    optWeeklyTelemetry: string;
+    optMonthlyAudit: string;
+    optFormatPDF: string;
+    optFormatCSV: string;
+    optFormatJSON: string;
+    optAll12Default: string;
+    btnGenerateReport: string;
+    searchPlaceholder: string;
+    typeAll: string;
+    typeDaily: string;
+    typeWeekly: string;
+    typeMonthly: string;
+    rpt1Title: string;
+    rpt1Desc: string;
+    rpt2Title: string;
+    rpt2Desc: string;
+    rpt3Title: string;
+    rpt3Desc: string;
+  };
+  chart: {
+    rainfallLabel: string;
+    thresholdLabel: string;
+    days: {
+      mon: string;
+      tue: string;
+      wed: string;
+      thu: string;
+      fri: string;
+      sat: string;
+      sun: string;
+    };
+  };
+  languageSelector: {
+    selectLanguage: string;
+    nationalLanguages: string;
+    regionalLanguages: string;
+    active: string;
+  };
+}

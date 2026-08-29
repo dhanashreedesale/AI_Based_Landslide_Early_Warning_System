@@ -1,60 +1,118 @@
 import { useState } from 'react';
-import { AlertTriangle, MapPin, Clock, TrendingUp, Layers } from 'lucide-react';
+import { AlertTriangle, MapPin, Clock, TrendingUp, ShieldCheck, CheckCircle2, SlidersHorizontal, Info } from 'lucide-react';
 import StatCard from '../components/Dashboard/StatCard';
 import RiskMap from '../components/Dashboard/RiskMap';
 import RiskHeatmap from '../components/Dashboard/RiskHeatmap';
 import AlertList from '../components/Dashboard/AlertList';
 import RainfallChart from '../components/Dashboard/RainfallChart';
+import { RegionFilterControl } from '../components/Dashboard/RegionFilterControl';
+import { useMapStore, useAlertStore } from '../store';
+import { DEFAULT_FOCUS_REGIONS, getRegionRainfallData, FocusRegionName } from '../data/focusRegionsData';
+import { useTranslation } from '../i18n';
 
 const Dashboard = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null);
   const [mapView, setMapView] = useState<'polygon' | 'heatmap'>('polygon');
+  const { selectedRegions, activeChartRegion, setActiveChartRegion } = useMapStore();
+  const { alerts } = useAlertStore();
+  const { t, tRegion } = useTranslation();
+
+  const isAllDefaultSelected =
+    selectedRegions.length === DEFAULT_FOCUS_REGIONS.length &&
+    DEFAULT_FOCUS_REGIONS.every((r) => selectedRegions.includes(r));
+
+  // Dynamically count active alerts filtered by selected regions
+  const activeAlertsForRegions = alerts.filter((alert) => selectedRegions.includes(alert.state));
+  const activeCount = activeAlertsForRegions.length;
+
+  const currentChartProfile = getRegionRainfallData(activeChartRegion, selectedRegions);
 
   const stats = [
     {
       id: 'alerts',
       icon: AlertTriangle,
-      label: 'Active Alerts',
-      value: '4',
-      change: '+2',
-      changeType: 'up' as const,
-      color: 'red' as const,
-      details: ['1 Severe - East Khasi Hills', '1 High - West Garo Hills', '2 Medium - Dima Hasao, Karbi Anglong']
+      label: t('dashboard.activeAlertsLabel'),
+      value: String(activeCount),
+      change: activeCount > 0 ? `${activeCount} Live` : 'All Cleared',
+      changeType: activeCount > 0 ? ('up' as const) : ('neutral' as const),
+      color: activeCount > 0 ? ('red' as const) : ('green' as const),
+      details:
+        activeCount > 0
+          ? activeAlertsForRegions.map(
+              (a) => `• ${a.title} - ${a.location} (${tRegion(a.state)})`
+            )
+          : ['✓ All active landslide telemetry issues have been resolved and cleared.'],
     },
     {
       id: 'zones',
       icon: MapPin,
-      label: 'High-Risk Zones',
-      value: '2',
-      change: '+1',
-      changeType: 'up' as const,
-      color: 'orange' as const,
-      details: ['East Khasi Hills - Severe Risk', 'West Garo Hills - High Risk']
-    },
-    {
-      id: 'districts',
-      icon: MapPin,
-      label: 'Districts Monitored',
-      value: '12',
+      label: t('dashboard.highRiskZonesLabel'),
+      value: '14',
       change: '+2',
       changeType: 'up' as const,
+      color: 'orange' as const,
+      details: [
+        t('statsDetails.zonesUttarakhand'),
+        t('statsDetails.zonesHimachal'),
+        t('statsDetails.zonesJK'),
+        t('statsDetails.zonesSikkimNE'),
+      ],
+    },
+    {
+      id: 'regions',
+      icon: ShieldCheck,
+      label: t('dashboard.focusRegionsLabel'),
+      value: `${selectedRegions.length} / 12`,
+      change: isAllDefaultSelected ? t('dashboard.defaultActive') : t('dashboard.filtered'),
+      changeType: 'neutral' as const,
       color: 'blue' as const,
-      details: ['East Khasi Hills', 'West Garo Hills', 'Dima Hasao', 'Karbi Anglong', 'Cachar', 'Goalpara']
+      details: DEFAULT_FOCUS_REGIONS.map((region) =>
+        selectedRegions.includes(region)
+          ? `✓ ${tRegion(region)} (${t('common.active')})`
+          : `✗ ${tRegion(region)} (${t('common.inactive')})`
+      ),
     },
     {
       id: 'sync',
       icon: Clock,
-      label: 'Last Data Sync',
-      value: '01:00 PM',
-      change: 'Live',
+      label: t('dashboard.dataSyncLabel'),
+      value: t('common.live'),
+      change: t('dashboard.operational100'),
       changeType: 'neutral' as const,
       color: 'green' as const,
-      details: ['Sentinel-2: Live', 'IMD Rainfall: Live', 'DEM Terrain: Live']
-    }
+      details: [
+        t('statsDetails.sensorInSAR'),
+        t('statsDetails.sensorIMD'),
+        t('statsDetails.sensorDEM'),
+        t('statsDetails.sensorGround'),
+      ],
+    },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Default Focus Regions Announcement Bar */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-xl p-4 shadow-md border border-blue-800/50 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-500/20 rounded-lg border border-blue-400/30 text-blue-300">
+            <ShieldCheck className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-base text-white">{t('dashboard.bannerTitle')}</h2>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-300 border border-green-500/40 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-green-400" /> {t('dashboard.bannerBadge')}
+              </span>
+            </div>
+            <p className="text-xs text-blue-200 mt-0.5">
+              {t('dashboard.bannerDescription')}
+            </p>
+          </div>
+        </div>
+
+        <RegionFilterControl />
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-20">
         {stats.map((stat) => (
@@ -68,38 +126,16 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative">
-        {/* Map Container */}
-        <div className="lg:col-span-2 bg-dark-800 rounded-xl border border-dark-700 overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-dark-700 flex items-center justify-between">
-            <h2 className="text-lg font-semibold flex items-center gap-2 text-white">
-              <MapPin className="w-5 h-5 text-yellow-500" />
-              Live Risk Map — Northeast India
-            </h2>
-            
-            {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-dark-700 rounded-lg p-1">
-              <button
-                onClick={() => setMapView('heatmap')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  mapView === 'heatmap' 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'text-gray-400 hover:text-white hover:bg-dark-600'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                Heatmap
-              </button>
-              <button
-                onClick={() => setMapView('polygon')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  mapView === 'polygon' 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'text-gray-400 hover:text-white hover:bg-dark-600'
-                }`}
-              >
-                <MapPin className="w-4 h-4" />
-                Zones
-              </button>
+        <div className="lg:col-span-2 bg-white rounded-xl border border-light-200 overflow-hidden shadow-sm flex flex-col">
+          <div className="p-4 border-b border-light-200 flex flex-wrap items-center justify-between gap-3 bg-gray-50/50">
+            <div>
+              <h2 className="text-base font-bold flex items-center gap-2 text-gray-900">
+                <MapPin className="w-5 h-5 text-blue-600" />
+                {t('dashboard.liveMapTitle')}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {t('dashboard.liveMapSubtitle')}
+              </p>
             </div>
           </div>
           
@@ -112,14 +148,25 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Alerts Panel */}
-        <div className="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-dark-700 flex justify-between items-center">
-            <h2 className="text-lg font-semibold flex items-center gap-2 text-white">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              Live Alerts
-            </h2>
-            <span className="text-xs text-red-400 animate-pulse">● 4 active</span>
+        {/* Live Alerts Column with Automatic Resolution Handling */}
+        <div className="bg-white rounded-xl border border-light-200 overflow-hidden shadow-sm flex flex-col">
+          <div className="p-4 border-b border-light-200 flex justify-between items-center bg-gray-50/50">
+            <div>
+              <h2 className="text-base font-bold flex items-center gap-2 text-gray-900">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                {t('dashboard.liveAlertsTitle')}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">{t('dashboard.liveAlertsSubtitle')}</p>
+            </div>
+            <span
+              className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                activeCount > 0
+                  ? 'text-red-600 bg-red-50 border border-red-200 animate-pulse'
+                  : 'text-green-700 bg-green-50 border border-green-200'
+              }`}
+            >
+              ● {activeCount} {t('common.active')}
+            </span>
           </div>
           <div className="h-[468px] overflow-y-auto custom-scrollbar">
             <AlertList />
@@ -127,13 +174,67 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Rainfall Chart */}
-      <div className="bg-dark-800 rounded-xl border border-dark-700 p-4 shadow-sm">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
-          <TrendingUp className="w-5 h-5 text-blue-400" />
-          7-Day Rainfall vs. Trigger Threshold
-        </h2>
-        <div className="h-[200px]">
+      {/* 7-Day Rainfall Chart Section with Region-Specific Thresholds */}
+      <div className="bg-white rounded-xl border border-light-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold flex items-center gap-2 text-gray-900">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              {t('dashboard.rainfallChartTitle')}
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {t('dashboard.rainfallChartSubtitle')}
+            </p>
+          </div>
+
+          {/* Interactive Region Selector for Specific Threshold */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+              <span className="font-semibold text-gray-500">Threshold Region:</span>
+              <select
+                value={activeChartRegion}
+                onChange={(e) => setActiveChartRegion(e.target.value as FocusRegionName | 'all')}
+                className="bg-transparent font-bold text-gray-900 focus:outline-none cursor-pointer"
+              >
+                <option value="all">🌐 Aggregated (All 12 Regions)</option>
+                {DEFAULT_FOCUS_REGIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {tRegion(r)} — Threshold: {getRegionRainfallData(r).threshold}mm
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dynamic Critical Threshold Badge */}
+            <div className="text-xs font-semibold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 bg-red-50 text-red-700 border-red-200">
+              <span>
+                {activeChartRegion === 'all'
+                  ? `Avg Trigger Threshold:`
+                  : `${tRegion(activeChartRegion)} Threshold:`}
+              </span>
+              <span className="font-extrabold text-red-800 text-sm">
+                {currentChartProfile.threshold} mm / 24h
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Geological Trigger Insight Callout */}
+        <div className="bg-blue-50/70 border border-blue-100 rounded-lg p-2.5 flex items-start gap-2 text-xs text-blue-900">
+          <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <span className="font-bold">
+              {activeChartRegion === 'all'
+                ? 'Regional Geological Sensitivity:'
+                : `${tRegion(activeChartRegion)} Terrain & Trigger Mechanism:`}{' '}
+            </span>
+            <span className="text-blue-800">{currentChartProfile.geologySummary}</span>
+            <span className="ml-1 text-blue-600 font-medium">({currentChartProfile.terrain})</span>
+          </div>
+        </div>
+
+        <div className="h-[250px]">
           <RainfallChart />
         </div>
       </div>

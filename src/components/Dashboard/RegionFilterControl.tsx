@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Filter, RotateCcw, ChevronDown, ChevronUp, MapPin, ShieldAlert } from 'lucide-react';
 import { useMapStore } from '../../store';
 import { DEFAULT_FOCUS_REGIONS, REGION_GROUPS } from '../../data/focusRegionsData';
+import { useTranslation } from '../../i18n';
 
 export const RegionFilterControl = () => {
   const { selectedRegions, setSelectedRegions, toggleRegion, resetToDefaultRegions } = useMapStore();
   const [isOpen, setIsOpen] = useState(false);
+  const { t, tRegion, tGroup } = useTranslation();
 
   const isDefaultSelected =
     selectedRegions.length === DEFAULT_FOCUS_REGIONS.length &&
@@ -28,14 +30,19 @@ export const RegionFilterControl = () => {
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-sm ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border shadow-xs ${
             isOpen
               ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300'
               : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
           }`}
         >
           <Filter className="w-3.5 h-3.5 text-blue-500" />
-          <span>Focus Regions ({selectedRegions.length}/{DEFAULT_FOCUS_REGIONS.length})</span>
+          <span>
+            {t('filterModal.buttonLabel', {
+              count: selectedRegions.length,
+              total: DEFAULT_FOCUS_REGIONS.length,
+            })}
+          </span>
           {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
 
@@ -43,10 +50,10 @@ export const RegionFilterControl = () => {
           <button
             onClick={resetToDefaultRegions}
             className="flex items-center gap-1.5 px-2.5 py-1.5 bg-yellow-50 text-yellow-800 border border-yellow-300 rounded-lg text-xs font-medium hover:bg-yellow-100 transition-colors"
-            title="Reset to 12 Default Focus Regions"
+            title={t('filterModal.resetButton')}
           >
             <RotateCcw className="w-3 h-3 text-yellow-700" />
-            <span>Reset to Default 12</span>
+            <span>{t('filterModal.resetButton')}</span>
           </button>
         )}
 
@@ -57,14 +64,14 @@ export const RegionFilterControl = () => {
               <button
                 key={region}
                 onClick={() => toggleRegion(region)}
-                className={`px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap transition-all flex items-center gap-1 border ${
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap transition-all flex items-center gap-1 border ${
                   isSelected
-                    ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-semibold'
                     : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200 opacity-60'
                 }`}
               >
                 {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
-                {region}
+                {tRegion(region)}
               </button>
             );
           })}
@@ -77,15 +84,15 @@ export const RegionFilterControl = () => {
           <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-red-600" />
-              <h3 className="font-bold text-sm text-gray-900">Landslide Focus Regions</h3>
+              <h3 className="font-bold text-sm text-gray-900">{t('filterModal.modalTitle')}</h3>
             </div>
             <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-              Default Focus Active
+              {t('filterModal.defaultFocusActive')}
             </span>
           </div>
 
           <p className="text-xs text-gray-500 mb-3">
-            Primary focus regions automatically selected by default for landslide hazard detection:
+            {t('filterModal.modalDescription')}
           </p>
 
           {/* Preset Buttons */}
@@ -94,29 +101,29 @@ export const RegionFilterControl = () => {
               onClick={handleSelectAll}
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                 isDefaultSelected
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-600 text-white font-semibold'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              All 12 Focus Regions
+              {t('filterModal.all12Regions')}
             </button>
             <button
               onClick={() => handleSelectGroup('Western & Central Himalayas')}
               className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-medium transition-colors"
             >
-              NW Himalayas
+              {t('regionGroups.nwHimalayasShort')}
             </button>
             <button
               onClick={() => handleSelectGroup('Eastern Himalayas & Northeast')}
               className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-medium transition-colors"
             >
-              Northeast & East
+              {t('regionGroups.neEastShort')}
             </button>
             <button
               onClick={handleClearAll}
               className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-md text-xs font-medium transition-colors ml-auto"
             >
-              Clear
+              {t('common.clear')}
             </button>
           </div>
 
@@ -126,7 +133,7 @@ export const RegionFilterControl = () => {
               <div key={groupName} className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                 <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-blue-500" />
-                  {groupName}
+                  {tGroup(groupName)}
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {regions.map((region) => {
@@ -144,7 +151,7 @@ export const RegionFilterControl = () => {
                           onChange={() => toggleRegion(region)}
                           className="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                         />
-                        <span className="truncate">{region}</span>
+                        <span className="truncate">{tRegion(region)}</span>
                       </label>
                     );
                   })}
@@ -159,13 +166,13 @@ export const RegionFilterControl = () => {
               className="text-xs text-gray-600 hover:text-blue-600 flex items-center gap-1 underline"
             >
               <RotateCcw className="w-3 h-3" />
-              Reset to 12 Focus Regions
+              {t('filterModal.resetTo12')}
             </button>
             <button
               onClick={() => setIsOpen(false)}
               className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Done
+              {t('common.done')}
             </button>
           </div>
         </div>
@@ -173,3 +180,4 @@ export const RegionFilterControl = () => {
     </div>
   );
 };
+
