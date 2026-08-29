@@ -1,138 +1,155 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Database, Activity, RefreshCw, Search, Filter, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../i18n';
 
 interface DataSource {
   id: string;
-  name: string;
+  nameKey: string;
   type: 'satellite' | 'weather' | 'terrain' | 'seismic';
   status: 'live' | 'mock' | 'offline';
   lastUpdate: string;
-  description: string;
+  descKey: string;
   icon: string;
 }
 
 const DataSourcesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const { t } = useTranslation();
 
   const dataSources: DataSource[] = [
     {
       id: '1',
-      name: 'Sentinel-2 Optical',
+      nameKey: 'dataSources.srcSentinel2Name',
       type: 'satellite',
       status: 'live',
       lastUpdate: '2 min ago',
-      description: 'High-resolution optical imagery for vegetation analysis',
-      icon: '🛰️'
+      descKey: 'dataSources.srcSentinel2Desc',
+      icon: '🛰️',
     },
     {
       id: '2',
-      name: 'Sentinel-1 SAR',
+      nameKey: 'dataSources.srcSentinel1Name',
       type: 'satellite',
       status: 'mock',
       lastUpdate: '15 min ago',
-      description: 'Cloud-penetrating radar for deformation monitoring',
-      icon: '📡'
+      descKey: 'dataSources.srcSentinel1Desc',
+      icon: '📡',
     },
     {
       id: '3',
-      name: 'IMD Rainfall',
+      nameKey: 'dataSources.srcIMDRainfallName',
       type: 'weather',
       status: 'live',
       lastUpdate: '5 min ago',
-      description: 'Real-time rainfall data from IMD weather stations',
-      icon: '🌧️'
+      descKey: 'dataSources.srcIMDRainfallDesc',
+      icon: '🌧️',
     },
     {
       id: '4',
-      name: 'DEM Terrain',
+      nameKey: 'dataSources.srcDEMTerrainName',
       type: 'terrain',
       status: 'live',
       lastUpdate: '1 hour ago',
-      description: 'Digital Elevation Model for slope analysis',
-      icon: '🏔️'
+      descKey: 'dataSources.srcDEMTerrainDesc',
+      icon: '🏔️',
     },
     {
       id: '5',
-      name: 'Soil Moisture',
+      nameKey: 'dataSources.srcSoilMoistureName',
       type: 'weather',
       status: 'mock',
       lastUpdate: '30 min ago',
-      description: 'Soil moisture levels from SMAP and ESA CCI',
-      icon: '💧'
+      descKey: 'dataSources.srcSoilMoistureDesc',
+      icon: '💧',
     },
     {
       id: '6',
-      name: 'Geology',
+      nameKey: 'dataSources.srcGeologyName',
       type: 'terrain',
       status: 'mock',
       lastUpdate: '1 day ago',
-      description: 'Geological Survey of India lithology data',
-      icon: '🔬'
+      descKey: 'dataSources.srcGeologyDesc',
+      icon: '🔬',
     },
     {
       id: '7',
-      name: 'Seismicity',
+      nameKey: 'dataSources.srcSeismicityName',
       type: 'seismic',
       status: 'mock',
       lastUpdate: '10 min ago',
-      description: 'USGS and NCS India seismic activity data',
-      icon: '🌍'
-    }
+      descKey: 'dataSources.srcSeismicityDesc',
+      icon: '🌍',
+    },
   ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'live': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'mock': return <Clock className="w-4 h-4 text-yellow-600" />;
-      case 'offline': return <XCircle className="w-4 h-4 text-red-600" />;
-      default: return null;
+      case 'live':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'mock':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'offline':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      default:
+        return null;
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'live': return 'Live Data';
-      case 'mock': return 'Mock Data';
-      case 'offline': return 'Offline';
-      default: return 'Unknown';
+      case 'live':
+        return t('dataSources.statusLive');
+      case 'mock':
+        return t('dataSources.statusMock');
+      case 'offline':
+        return t('dataSources.statusOffline');
+      default:
+        return t('common.unknown');
     }
   };
 
-  const filteredSources = dataSources.filter(source => {
-    const matchesSearch = source.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          source.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || source.type === filterType;
-    return matchesSearch && matchesType;
-  });
+  const filteredSources = useMemo(() => {
+    return dataSources.filter((source) => {
+      const name = t(source.nameKey);
+      const desc = t(source.descKey);
+      const matchesSearch =
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        desc.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === 'all' || source.type === filterType;
+      return matchesSearch && matchesType;
+    });
+  }, [searchTerm, filterType, t]);
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-light-200 p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-light-200 p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
               <Database className="w-6 h-6 text-blue-600" />
-              Data Sources
+              {t('dataSources.pageTitle')}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Monitor and manage all data sources</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {t('dataSources.pageSubtitle')}
+            </p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-xs font-semibold text-sm">
             <RefreshCw className="w-4 h-4" />
-            Refresh All
+            {t('common.refreshAll')}
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
+      <div className="bg-white rounded-xl border border-light-200 p-4 shadow-xs">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search data sources..."
+                placeholder={t('dataSources.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -146,11 +163,11 @@ const DataSourcesPage = () => {
               onChange={(e) => setFilterType(e.target.value)}
               className="px-3 py-2 bg-light-50 border border-light-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All Types</option>
-              <option value="satellite">Satellite</option>
-              <option value="weather">Weather</option>
-              <option value="terrain">Terrain</option>
-              <option value="seismic">Seismic</option>
+              <option value="all">{t('dataSources.typeAll')}</option>
+              <option value="satellite">{t('dataSources.typeSatellite')}</option>
+              <option value="weather">{t('dataSources.typeWeather')}</option>
+              <option value="terrain">{t('dataSources.typeTerrain')}</option>
+              <option value="seismic">{t('dataSources.typeSeismic')}</option>
             </select>
           </div>
         </div>
@@ -163,29 +180,33 @@ const DataSourcesPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white rounded-xl border border-light-200 p-6 hover:border-light-300 transition-all shadow-sm hover:shadow-md"
+            className="bg-white rounded-xl border border-light-200 p-6 hover:border-light-300 transition-all shadow-xs hover:shadow-md"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{source.icon}</span>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{source.name}</h3>
-                  <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full mt-1 ${
-                    source.status === 'live' ? 'bg-green-50 text-green-700' :
-                    source.status === 'mock' ? 'bg-yellow-50 text-yellow-700' :
-                    'bg-red-50 text-red-700'
-                  }`}>
+                  <h3 className="font-bold text-gray-900">{t(source.nameKey)}</h3>
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full mt-1 font-semibold ${
+                      source.status === 'live'
+                        ? 'bg-green-50 text-green-700'
+                        : source.status === 'mock'
+                        ? 'bg-yellow-50 text-yellow-700'
+                        : 'bg-red-50 text-red-700'
+                    }`}
+                  >
                     {getStatusIcon(source.status)}
                     {getStatusText(source.status)}
                   </span>
                 </div>
               </div>
-              <span className="text-xs text-gray-500">{source.lastUpdate}</span>
+              <span className="text-xs text-gray-500 font-medium">{source.lastUpdate}</span>
             </div>
-            <p className="text-sm text-gray-600 mt-3">{source.description}</p>
+            <p className="text-sm text-gray-600 mt-3">{t(source.descKey)}</p>
             <div className="mt-4 flex gap-2">
-              <button className="flex-1 px-3 py-1.5 bg-light-100 hover:bg-light-200 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors">
-                View Details
+              <button className="flex-1 px-3 py-1.5 bg-light-100 hover:bg-light-200 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors font-medium">
+                {t('common.viewDetails')}
               </button>
               <button className="px-3 py-1.5 bg-light-100 hover:bg-light-200 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors">
                 <Activity className="w-4 h-4" />
