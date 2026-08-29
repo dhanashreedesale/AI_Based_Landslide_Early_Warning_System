@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, TrendingUp, TrendingDown, Minus, X } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 type ColorKey = 'red' | 'orange' | 'blue' | 'green';
 
@@ -19,6 +20,8 @@ interface StatCardProps {
 }
 
 const StatCard = ({ stat, isOpen, onToggle }: StatCardProps) => {
+  const { t } = useTranslation();
+
   const colorMap: Record<ColorKey, string> = {
     red: 'border-red-500/20 bg-red-50',
     orange: 'border-orange-500/20 bg-orange-50',
@@ -40,7 +43,7 @@ const StatCard = ({ stat, isOpen, onToggle }: StatCardProps) => {
     <div className="relative z-10">
       <div 
         onClick={onToggle}
-        className={`bg-white rounded-xl border border-light-200 p-4 hover:border-light-300 transition-all cursor-pointer shadow-sm hover:shadow-md ${isOpen ? 'ring-2 ring-blue-500/50' : ''}`}
+        className={`bg-white rounded-xl border border-light-200 p-4 hover:border-light-300 transition-all cursor-pointer shadow-xs hover:shadow-md ${isOpen ? 'ring-2 ring-blue-500/50' : ''}`}
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -73,7 +76,7 @@ const StatCard = ({ stat, isOpen, onToggle }: StatCardProps) => {
           >
             <div className="p-3">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-gray-500 font-medium">Details</span>
+                <span className="text-xs text-gray-500 font-semibold">{t('common.details')}</span>
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -86,7 +89,7 @@ const StatCard = ({ stat, isOpen, onToggle }: StatCardProps) => {
               </div>
               <ul className="space-y-1">
                 {stat.details.map((detail, index) => (
-                  <li key={index} className="text-sm text-gray-700 flex items-center gap-2 py-1 hover:bg-light-50 px-2 rounded transition-colors">
+                  <li key={index} className="text-xs sm:text-sm text-gray-700 flex items-center gap-2 py-1 hover:bg-light-50 px-2 rounded transition-colors">
                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0" />
                     {detail}
                   </li>

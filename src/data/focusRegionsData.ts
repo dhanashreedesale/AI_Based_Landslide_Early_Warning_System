@@ -590,3 +590,134 @@ export const MAJOR_FOCUS_CITIES = [
   { name: 'Aizawl', state: 'Mizoram', pos: [23.7271, 92.7176] as [number, number] },
   { name: 'Agartala', state: 'Tripura', pos: [23.8315, 91.2868] as [number, number] },
 ];
+
+export interface RegionRainfallProfile {
+  state: FocusRegionName;
+  threshold: number; // in mm / 24h
+  terrain: string;
+  geologySummary: string;
+  weeklyRainfall: number[]; // 7 days (Mon to Sun)
+}
+
+export const REGION_RAINFALL_PROFILES: Record<FocusRegionName, RegionRainfallProfile> = {
+  'Uttarakhand': {
+    state: 'Uttarakhand',
+    threshold: 80,
+    terrain: 'Fractured High-Grade Metamorphic & Gneiss',
+    geologySummary: 'Main Central Thrust (MCT) zone with highly fragmented limestone & shear planes',
+    weeklyRainfall: [45, 62, 78, 95, 112, 135, 168],
+  },
+  'Himachal Pradesh': {
+    state: 'Himachal Pradesh',
+    threshold: 90,
+    terrain: 'Steep River Valley Gorges & Glacial Drift',
+    geologySummary: 'Overburden slopes in Beas & Sutlej basins susceptible to river toe-erosion',
+    weeklyRainfall: [40, 58, 72, 88, 110, 140, 175],
+  },
+  'Jammu & Kashmir': {
+    state: 'Jammu & Kashmir',
+    threshold: 85,
+    terrain: 'Thrust Fault Zones & Unconsolidated Scree',
+    geologySummary: 'Siwalik and Murree formations along NH-44 Ramban corridor with rapid pore pressure rise',
+    weeklyRainfall: [38, 52, 68, 82, 105, 130, 160],
+  },
+  'Ladakh': {
+    state: 'Ladakh',
+    threshold: 40,
+    terrain: 'Cold Arid Permafrost & Scree Slopes',
+    geologySummary: 'Glacial scree and moraines triggered easily by localized cloudbursts and permafrost thaw',
+    weeklyRainfall: [10, 15, 22, 28, 35, 48, 65],
+  },
+  'Sikkim': {
+    state: 'Sikkim',
+    threshold: 120,
+    terrain: 'Steep Gneiss/Schist Slopes & Teesta Basin',
+    geologySummary: 'Darjeeling gneiss and Daling group phyllites prone to debris flows during intense monsoons',
+    weeklyRainfall: [35, 60, 85, 110, 135, 160, 190],
+  },
+  'Arunachal Pradesh': {
+    state: 'Arunachal Pradesh',
+    threshold: 110,
+    terrain: 'Rugged Metamorphic Fold Belts',
+    geologySummary: 'High-energy tectonic mountain belts with frequent rockfall along strategic border highways',
+    weeklyRainfall: [30, 50, 75, 95, 120, 140, 152],
+  },
+  'Assam': {
+    state: 'Assam',
+    threshold: 95,
+    terrain: 'Sedimentary Clay-Rich Hill Tracts',
+    geologySummary: 'Disang-Barail sedimentary formations in Dima Hasao subject to severe railway track slumping',
+    weeklyRainfall: [35, 55, 70, 90, 115, 140, 165],
+  },
+  'Meghalaya': {
+    state: 'Meghalaya',
+    threshold: 180,
+    terrain: 'Karstified Sandstone Plateau Escarpments',
+    geologySummary: 'World-highest rainfall belt with deep gully erosion along southern Meghalaya fault scarps',
+    weeklyRainfall: [65, 95, 130, 165, 195, 220, 265],
+  },
+  'Nagaland': {
+    state: 'Nagaland',
+    threshold: 100,
+    terrain: 'Disang Shale & Active Thrust Ridges',
+    geologySummary: 'Unconsolidated fissile shales in Kohima and Mokokchung prone to continuous creep',
+    weeklyRainfall: [30, 48, 65, 85, 108, 125, 142],
+  },
+  'Manipur': {
+    state: 'Manipur',
+    threshold: 105,
+    terrain: 'Tertiary Flysch Formations & Clay Ridges',
+    geologySummary: 'High plasticity clayey soil along NH-37 Tamenglong & Senapati highway slopes',
+    weeklyRainfall: [32, 50, 68, 88, 112, 130, 150],
+  },
+  'Mizoram': {
+    state: 'Mizoram',
+    threshold: 115,
+    terrain: 'Steep Anticlinal Sandstone-Shale Ridges',
+    geologySummary: 'Bedding-plane slip and urban overburden on steep longitudinal ridges of Aizawl',
+    weeklyRainfall: [35, 54, 72, 92, 118, 138, 155],
+  },
+  'Tripura': {
+    state: 'Tripura',
+    threshold: 75,
+    terrain: 'Low Clay-Sand Anticlines & Soft Hillocks',
+    geologySummary: 'Tipam sandstone and Dupitila clay beds vulnerable to rapid washouts and road sinking',
+    weeklyRainfall: [25, 38, 50, 62, 74, 86, 98],
+  },
+};
+
+/**
+ * Returns the rainfall and threshold profile for a single region or aggregated across selected regions
+ */
+export const getRegionRainfallData = (
+  selectedRegion: FocusRegionName | 'all',
+  activeRegionsList: string[] = [...DEFAULT_FOCUS_REGIONS]
+) => {
+  if (selectedRegion !== 'all' && REGION_RAINFALL_PROFILES[selectedRegion]) {
+    return REGION_RAINFALL_PROFILES[selectedRegion];
+  }
+
+  // Calculate aggregated average for currently active regions
+  const validRegions = activeRegionsList.filter(
+    (r): r is FocusRegionName => r in REGION_RAINFALL_PROFILES
+  );
+
+  const list = validRegions.length > 0 ? validRegions : (DEFAULT_FOCUS_REGIONS as unknown as FocusRegionName[]);
+  const avgThreshold = Math.round(
+    list.reduce((sum, r) => sum + REGION_RAINFALL_PROFILES[r].threshold, 0) / list.length
+  );
+
+  const avgWeekly = [0, 1, 2, 3, 4, 5, 6].map((dayIdx) => {
+    const sum = list.reduce((acc, r) => acc + REGION_RAINFALL_PROFILES[r].weeklyRainfall[dayIdx], 0);
+    return Math.round(sum / list.length);
+  });
+
+  return {
+    state: 'All Focus Regions' as any,
+    threshold: avgThreshold,
+    terrain: 'Himalayan & Northeast Landslide Belt',
+    geologySummary: `Aggregated telemetry across ${list.length} active landslide-prone focus regions`,
+    weeklyRainfall: avgWeekly,
+  };
+};
+

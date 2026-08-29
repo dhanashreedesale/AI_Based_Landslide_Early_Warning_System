@@ -1,76 +1,88 @@
 import { useState } from 'react';
-import { AlertTriangle, MapPin, Clock, TrendingUp, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, MapPin, Clock, TrendingUp, ShieldCheck, CheckCircle2, SlidersHorizontal, Info } from 'lucide-react';
 import StatCard from '../components/Dashboard/StatCard';
 import RiskMap from '../components/Dashboard/RiskMap';
 import AlertList from '../components/Dashboard/AlertList';
 import RainfallChart from '../components/Dashboard/RainfallChart';
 import { RegionFilterControl } from '../components/Dashboard/RegionFilterControl';
-import { useMapStore } from '../store';
-import { DEFAULT_FOCUS_REGIONS } from '../data/focusRegionsData';
+import { useMapStore, useAlertStore } from '../store';
+import { DEFAULT_FOCUS_REGIONS, getRegionRainfallData, FocusRegionName } from '../data/focusRegionsData';
+import { useTranslation } from '../i18n';
 
 const Dashboard = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null);
-  const { selectedRegions } = useMapStore();
+  const { selectedRegions, activeChartRegion, setActiveChartRegion } = useMapStore();
+  const { alerts } = useAlertStore();
+  const { t, tRegion } = useTranslation();
 
   const isAllDefaultSelected =
     selectedRegions.length === DEFAULT_FOCUS_REGIONS.length &&
     DEFAULT_FOCUS_REGIONS.every((r) => selectedRegions.includes(r));
 
+  // Dynamically count active alerts filtered by selected regions
+  const activeAlertsForRegions = alerts.filter((alert) => selectedRegions.includes(alert.state));
+  const activeCount = activeAlertsForRegions.length;
+
+  const currentChartProfile = getRegionRainfallData(activeChartRegion, selectedRegions);
+
   const stats = [
     {
       id: 'alerts',
       icon: AlertTriangle,
-      label: 'Active Alerts',
-      value: '8',
-      change: '+3',
-      changeType: 'up' as const,
-      color: 'red' as const,
-      details: [
-        '2 Severe - Joshimath (Uttarakhand) & Sohra (Meghalaya)',
-        '3 High - Kullu (HP), Ramban (J&K) & Gangtok (Sikkim)',
-        '3 Medium - Haflong (Assam), Tamenglong (Manipur) & Aizawl (Mizoram)',
-      ],
+      label: t('dashboard.activeAlertsLabel'),
+      value: String(activeCount),
+      change: activeCount > 0 ? `${activeCount} Live` : 'All Cleared',
+      changeType: activeCount > 0 ? ('up' as const) : ('neutral' as const),
+      color: activeCount > 0 ? ('red' as const) : ('green' as const),
+      details:
+        activeCount > 0
+          ? activeAlertsForRegions.map(
+              (a) => `• ${a.title} - ${a.location} (${tRegion(a.state)})`
+            )
+          : ['✓ All active landslide telemetry issues have been resolved and cleared.'],
     },
     {
       id: 'zones',
       icon: MapPin,
-      label: 'High-Risk Zones',
+      label: t('dashboard.highRiskZonesLabel'),
       value: '14',
       change: '+2',
       changeType: 'up' as const,
       color: 'orange' as const,
       details: [
-        'Uttarakhand: Joshimath, Kedarnath Valley, Dharchula',
-        'Himachal Pradesh: Kullu-Manali, Shimla, Kinnaur',
-        'Jammu & Kashmir: Ramban-Banihal, Reasi',
-        'Sikkim & NE: Gangtok, Tawang, Cherrapunji, Tamenglong, Aizawl',
+        t('statsDetails.zonesUttarakhand'),
+        t('statsDetails.zonesHimachal'),
+        t('statsDetails.zonesJK'),
+        t('statsDetails.zonesSikkimNE'),
       ],
     },
     {
       id: 'regions',
       icon: ShieldCheck,
-      label: 'Focus Regions',
+      label: t('dashboard.focusRegionsLabel'),
       value: `${selectedRegions.length} / 12`,
-      change: isAllDefaultSelected ? 'Default Active' : 'Filtered',
+      change: isAllDefaultSelected ? t('dashboard.defaultActive') : t('dashboard.filtered'),
       changeType: 'neutral' as const,
       color: 'blue' as const,
       details: DEFAULT_FOCUS_REGIONS.map((region) =>
-        selectedRegions.includes(region) ? `✓ ${region} (Active)` : `✗ ${region} (Inactive)`
+        selectedRegions.includes(region)
+          ? `✓ ${tRegion(region)} (${t('common.active')})`
+          : `✗ ${tRegion(region)} (${t('common.inactive')})`
       ),
     },
     {
       id: 'sync',
       icon: Clock,
-      label: 'Data Sync & Sensors',
-      value: 'Live',
-      change: '100% Operational',
+      label: t('dashboard.dataSyncLabel'),
+      value: t('common.live'),
+      change: t('dashboard.operational100'),
       changeType: 'neutral' as const,
       color: 'green' as const,
       details: [
-        'Sentinel-1 / Sentinel-2 InSAR: Active',
-        'IMD High-Resolution Rainfall: Live',
-        'ALOS PALSAR DEM & Geological Maps: Loaded',
-        'Ground Piezometer & Inclinometer: Online',
+        t('statsDetails.sensorInSAR'),
+        t('statsDetails.sensorIMD'),
+        t('statsDetails.sensorDEM'),
+        t('statsDetails.sensorGround'),
       ],
     },
   ];
@@ -85,13 +97,13 @@ const Dashboard = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-bold text-base text-white">Default Focus Regions Active</h2>
+              <h2 className="font-bold text-base text-white">{t('dashboard.bannerTitle')}</h2>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-300 border border-green-500/40 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-green-400" /> 12 Selected by Default
+                <CheckCircle2 className="w-3 h-3 text-green-400" /> {t('dashboard.bannerBadge')}
               </span>
             </div>
             <p className="text-xs text-blue-200 mt-0.5">
-              Primary landslide monitoring active for Uttarakhand, Himachal Pradesh, Jammu & Kashmir, Ladakh, Sikkim, Arunachal Pradesh, Assam, Meghalaya, Nagaland, Manipur, Mizoram & Tripura.
+              {t('dashboard.bannerDescription')}
             </p>
           </div>
         </div>
@@ -118,10 +130,10 @@ const Dashboard = () => {
             <div>
               <h2 className="text-base font-bold flex items-center gap-2 text-gray-900">
                 <MapPin className="w-5 h-5 text-blue-600" />
-                Live Risk Map — Himalayan & Northeast Landslide Belt
+                {t('dashboard.liveMapTitle')}
               </h2>
               <p className="text-xs text-gray-500 mt-0.5">
-                Default monitoring enabled for 12 primary landslide risk states & UTs
+                {t('dashboard.liveMapSubtitle')}
               </p>
             </div>
 
@@ -133,18 +145,24 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Live Alerts Column */}
+        {/* Live Alerts Column with Automatic Resolution Handling */}
         <div className="bg-white rounded-xl border border-light-200 overflow-hidden shadow-sm flex flex-col">
           <div className="p-4 border-b border-light-200 flex justify-between items-center bg-gray-50/50">
             <div>
               <h2 className="text-base font-bold flex items-center gap-2 text-gray-900">
                 <AlertTriangle className="w-5 h-5 text-red-600" />
-                Live Risk Alerts
+                {t('dashboard.liveAlertsTitle')}
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">Focus regions telemetry alerts</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('dashboard.liveAlertsSubtitle')}</p>
             </div>
-            <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full animate-pulse">
-              ● 8 Active
+            <span
+              className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                activeCount > 0
+                  ? 'text-red-600 bg-red-50 border border-red-200 animate-pulse'
+                  : 'text-green-700 bg-green-50 border border-green-200'
+              }`}
+            >
+              ● {activeCount} {t('common.active')}
             </span>
           </div>
 
@@ -154,25 +172,67 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 7-Day Rainfall Chart Section */}
-      <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between mb-4">
+      {/* 7-Day Rainfall Chart Section with Region-Specific Thresholds */}
+      <div className="bg-white rounded-xl border border-light-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-gray-900">
               <TrendingUp className="w-5 h-5 text-blue-600" />
-              7-Day Cumulative Rainfall vs. Landslide Trigger Threshold
+              {t('dashboard.rainfallChartTitle')}
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Aggregated IMD satellite rainfall across Himalayan & Northeast focus regions
+              {t('dashboard.rainfallChartSubtitle')}
             </p>
           </div>
 
-          <div className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
-            Critical Threshold: <span className="font-bold text-red-600">80mm / 24h</span>
+          {/* Interactive Region Selector for Specific Threshold */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+              <span className="font-semibold text-gray-500">Threshold Region:</span>
+              <select
+                value={activeChartRegion}
+                onChange={(e) => setActiveChartRegion(e.target.value as FocusRegionName | 'all')}
+                className="bg-transparent font-bold text-gray-900 focus:outline-none cursor-pointer"
+              >
+                <option value="all">🌐 Aggregated (All 12 Regions)</option>
+                {DEFAULT_FOCUS_REGIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {tRegion(r)} — Threshold: {getRegionRainfallData(r).threshold}mm
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dynamic Critical Threshold Badge */}
+            <div className="text-xs font-semibold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 bg-red-50 text-red-700 border-red-200">
+              <span>
+                {activeChartRegion === 'all'
+                  ? `Avg Trigger Threshold:`
+                  : `${tRegion(activeChartRegion)} Threshold:`}
+              </span>
+              <span className="font-extrabold text-red-800 text-sm">
+                {currentChartProfile.threshold} mm / 24h
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="h-[220px]">
+        {/* Geological Trigger Insight Callout */}
+        <div className="bg-blue-50/70 border border-blue-100 rounded-lg p-2.5 flex items-start gap-2 text-xs text-blue-900">
+          <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <span className="font-bold">
+              {activeChartRegion === 'all'
+                ? 'Regional Geological Sensitivity:'
+                : `${tRegion(activeChartRegion)} Terrain & Trigger Mechanism:`}{' '}
+            </span>
+            <span className="text-blue-800">{currentChartProfile.geologySummary}</span>
+            <span className="ml-1 text-blue-600 font-medium">({currentChartProfile.terrain})</span>
+          </div>
+        </div>
+
+        <div className="h-[250px]">
           <RainfallChart />
         </div>
       </div>

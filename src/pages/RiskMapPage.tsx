@@ -5,11 +5,13 @@ import { Search, MapPin, Layers, ShieldAlert, CheckCircle2, RotateCcw } from 'lu
 import { useMapStore } from '../store';
 import { FOCUS_REGIONS_DATA, MAJOR_FOCUS_CITIES, DEFAULT_FOCUS_REGIONS } from '../data/focusRegionsData';
 import { RegionFilterControl } from '../components/Dashboard/RegionFilterControl';
+import { useTranslation } from '../i18n';
 
 const RiskMapPage = () => {
   const { selectedRegions, center, zoom, resetToDefaultRegions } = useMapStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLayer, setSelectedLayer] = useState<'all' | 'severe' | 'high'>('all');
+  const { t, tRegion, tHazardLevel } = useTranslation();
 
   const activeZones = useMemo(() => {
     return FOCUS_REGIONS_DATA.filter((zone) => {
@@ -47,19 +49,19 @@ const RiskMapPage = () => {
   return (
     <div className="space-y-4">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-blue-400" />
-              Landslide Live Risk Map — National Focus Regions
+              {t('dashboard.liveMapTitle')}
             </h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40">
-              12 Default Regions Active
+              {t('dashboard.bannerBadge')}
             </span>
           </div>
           <p className="text-xs text-blue-200 mt-1">
-            Covering primary high-hazard landslide belts in Uttarakhand, Himachal Pradesh, Jammu & Kashmir, Ladakh, Sikkim, Arunachal Pradesh, Assam, Meghalaya, Nagaland, Manipur, Mizoram & Tripura.
+            {t('dashboard.bannerDescription')}
           </p>
         </div>
 
@@ -68,47 +70,47 @@ const RiskMapPage = () => {
           className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-400/30 rounded-lg text-xs font-semibold transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" />
-          Reset 12 Focus Regions
+          {t('filterModal.resetTo12')}
         </button>
       </div>
 
       {/* Overview Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-xs text-gray-500 font-medium">Selected Focus Regions</div>
+        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-xs">
+          <div className="text-xs text-gray-500 font-medium">{t('map.selectedFocusRegionsCard')}</div>
           <div className="text-2xl font-bold text-gray-900 flex items-center justify-between">
             <span>{selectedRegions.length} / {DEFAULT_FOCUS_REGIONS.length}</span>
             <CheckCircle2 className="w-5 h-5 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-xs text-gray-500 font-medium">Active High Risk Zones</div>
+        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-xs">
+          <div className="text-xs text-gray-500 font-medium">{t('map.activeHighRiskZonesCard')}</div>
           <div className="text-2xl font-bold text-red-600 flex items-center justify-between">
             <span>{severeCount + highCount}</span>
             <span className="text-xs font-semibold bg-red-50 text-red-700 px-2 py-0.5 rounded">
-              {severeCount} Severe
+              {t('map.severeBadge', { count: severeCount })}
             </span>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-xs text-gray-500 font-medium">Active Telemetry Alerts</div>
+        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-xs">
+          <div className="text-xs text-gray-500 font-medium">{t('map.activeTelemetryAlertsCard')}</div>
           <div className="text-2xl font-bold text-yellow-600">8</div>
         </div>
-        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm">
-          <div className="text-xs text-gray-500 font-medium font-medium">Monitored Districts</div>
+        <div className="bg-white rounded-xl border border-light-200 p-4 shadow-xs">
+          <div className="text-xs text-gray-500 font-medium">{t('map.monitoredDistrictsCard')}</div>
           <div className="text-2xl font-bold text-blue-600">36</div>
         </div>
       </div>
 
       {/* Controls Bar */}
-      <div className="bg-white rounded-xl border border-light-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-light-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-gray-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search district, state, or zone (e.g. Joshimath, Sohra, Kullu)..."
+            placeholder={t('map.searchPlaceholder')}
             className="bg-light-50 border border-light-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
           />
         </div>
@@ -123,7 +125,7 @@ const RiskMapPage = () => {
                 selectedLayer === 'all' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              All Zones ({activeZones.length})
+              {t('map.allZonesBtn', { count: activeZones.length })}
             </button>
             <button
               onClick={() => setSelectedLayer('severe')}
@@ -131,14 +133,14 @@ const RiskMapPage = () => {
                 selectedLayer === 'severe' ? 'bg-red-600 text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Severe Only ({severeCount})
+              {t('map.severeOnlyBtn', { count: severeCount })}
             </button>
           </div>
         </div>
       </div>
 
       {/* Interactive Leaflet Map */}
-      <div className="bg-white rounded-xl border border-light-200 overflow-hidden h-[600px] relative shadow-sm">
+      <div className="bg-white rounded-xl border border-light-200 overflow-hidden h-[600px] relative shadow-xs">
         <MapContainer
           key={`risk-map-page-${selectedRegions.length}`}
           center={center}
@@ -172,26 +174,26 @@ const RiskMapPage = () => {
                       className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white"
                       style={{ backgroundColor: getRiskColor(zone.riskLevel) }}
                     >
-                      {zone.riskLevel.toUpperCase()}
+                      {tHazardLevel(zone.riskLevel)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600">{zone.district}, {zone.state}</p>
+                  <p className="text-xs text-gray-600">{zone.district}, {tRegion(zone.state)}</p>
 
                   <div className="mt-2 space-y-1 text-xs border-t border-gray-200 pt-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Risk Score</span>
+                      <span className="text-gray-500">{t('map.riskScore')}</span>
                       <span className="font-bold text-gray-900">{zone.stats.riskScore}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Rainfall</span>
+                      <span className="text-gray-500">{t('map.rainfall24h')}</span>
                       <span className="font-bold text-blue-600">{zone.stats.rainfall} mm</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Soil Saturation</span>
+                      <span className="text-gray-500">{t('map.soilSaturation')}</span>
                       <span className="font-bold text-green-600">{zone.stats.soilMoisture}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Deformation</span>
+                      <span className="text-gray-500">{t('map.deformation')}</span>
                       <span className="font-bold text-red-600">{zone.stats.deformation} mm</span>
                     </div>
                   </div>
@@ -218,7 +220,7 @@ const RiskMapPage = () => {
             >
               <Popup>
                 <div className="text-gray-900 text-xs">
-                  <strong>{city.name}</strong> ({city.state})
+                  <strong>{city.name}</strong> ({tRegion(city.state)})
                 </div>
               </Popup>
             </CircleMarker>
@@ -229,24 +231,24 @@ const RiskMapPage = () => {
         <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg border border-light-200 p-3 shadow-xl">
           <p className="text-xs text-gray-700 font-bold mb-1.5 flex items-center gap-1">
             <Layers className="w-3.5 h-3.5 text-blue-600" />
-            Landslide Hazard Levels
+            {t('map.hazardLevelsTitle')}
           </p>
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs">
               <span className="w-3.5 h-3.5 bg-red-600 rounded border border-red-700"></span>
-              <span className="text-gray-700">Severe Hazard (≥85%)</span>
+              <span className="text-gray-700">{t('hazardLevels.severeDesc')}</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="w-3.5 h-3.5 bg-orange-500 rounded border border-orange-600"></span>
-              <span className="text-gray-700">High Hazard (70-84%)</span>
+              <span className="text-gray-700">{t('hazardLevels.highDesc')}</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="w-3.5 h-3.5 bg-amber-500 rounded border border-amber-600"></span>
-              <span className="text-gray-700">Medium Hazard (50-69%)</span>
+              <span className="text-gray-700">{t('hazardLevels.mediumDesc')}</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="w-3.5 h-3.5 bg-emerald-500 rounded border border-emerald-600"></span>
-              <span className="text-gray-700">Low Hazard (&lt;50%)</span>
+              <span className="text-gray-700">{t('hazardLevels.lowDesc')}</span>
             </div>
           </div>
         </div>
@@ -255,7 +257,12 @@ const RiskMapPage = () => {
         <div className="absolute top-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg border border-light-200 p-3 shadow-xl">
           <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
             <MapPin className="w-4 h-4 text-blue-600" />
-            <span>Showing {activeZones.length} landslide hazard zones across {selectedRegions.length} focus regions</span>
+            <span>
+              {t('map.showingZonesAcross', {
+                count: activeZones.length,
+                regions: selectedRegions.length,
+              })}
+            </span>
           </div>
         </div>
       </div>
@@ -263,4 +270,4 @@ const RiskMapPage = () => {
   );
 };
 
-export default RiskMapPage;
+export default RiskMapPage;

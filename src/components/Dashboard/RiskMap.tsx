@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, AlertTriangle, Layers, Maximize2, ShieldAlert } from 'lucide-react';
 import { useMapStore } from '../../store';
 import { FOCUS_REGIONS_DATA, MAJOR_FOCUS_CITIES, LandslideZone, DEFAULT_FOCUS_REGIONS } from '../../data/focusRegionsData';
+import { useTranslation } from '../../i18n';
 
 const RiskMap = () => {
   const { selectedRegions, selectedZone: storeSelectedZone, setSelectedZone: setStoreSelectedZone, center, zoom, resetToDefaultRegions } = useMapStore();
   const [localSelectedZone, setLocalSelectedZone] = useState<LandslideZone | null>(null);
+  const { t, tRegion, tGroup, tHazardLevel } = useTranslation();
 
   // Filter zones based on user-selected regions (default includes all 12 focus regions)
   const activeZones = useMemo(() => {
@@ -29,16 +31,6 @@ const RiskMap = () => {
       severe: '#dc2626',
     };
     return colors[level as keyof typeof colors] || '#6b7280';
-  };
-
-  const getRiskLabel = (level: string) => {
-    const labels = {
-      low: '🟢 Low Risk',
-      medium: '🟡 Medium Risk',
-      high: '🟠 High Risk',
-      severe: '🔴 SEVERE RISK',
-    };
-    return labels[level as keyof typeof labels] || 'Unknown';
   };
 
   const isDefault12Selected =
@@ -106,26 +98,26 @@ const RiskMap = () => {
                     className="px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase"
                     style={{ backgroundColor: getRiskColor(zone.riskLevel) }}
                   >
-                    {zone.riskLevel}
+                    {tHazardLevel(zone.riskLevel)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 font-medium">{zone.district}, {zone.state}</p>
+                <p className="text-xs text-gray-600 font-medium">{zone.district}, {tRegion(zone.state)}</p>
 
                 <div className="mt-2 space-y-1.5 text-xs border-t border-gray-100 pt-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Risk Score</span>
+                    <span className="text-gray-500">{t('map.riskScore')}</span>
                     <span className="font-bold text-gray-900">{zone.stats.riskScore}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">24h Rainfall</span>
+                    <span className="text-gray-500">{t('map.rainfall24h')}</span>
                     <span className="font-bold text-blue-600">{zone.stats.rainfall} mm</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Soil Saturation</span>
+                    <span className="text-gray-500">{t('map.soilSaturation')}</span>
                     <span className="font-bold text-green-600">{zone.stats.soilMoisture}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Deformation</span>
+                    <span className="text-gray-500">{t('map.deformation')}</span>
                     <span className="font-bold text-red-600">{zone.stats.deformation} mm</span>
                   </div>
                 </div>
@@ -156,7 +148,7 @@ const RiskMap = () => {
           >
             <Popup>
               <div className="text-gray-900 font-semibold text-xs">
-                <strong>{city.name}</strong> ({city.state})
+                <strong>{city.name}</strong> ({tRegion(city.state)})
               </div>
             </Popup>
           </CircleMarker>
@@ -168,11 +160,13 @@ const RiskMap = () => {
         <div className="flex items-center gap-2 mb-1">
           <ShieldAlert className="w-4 h-4 text-red-600" />
           <span className="text-xs font-bold text-gray-900">
-            {isDefault12Selected ? '12 Focus Regions Active (Default)' : `${selectedRegions.length} Focus Regions Filtered`}
+            {isDefault12Selected
+              ? t('map.all12DefaultActive')
+              : t('map.filteredRegionsActive', { count: selectedRegions.length })}
           </span>
         </div>
         <p className="text-[11px] text-gray-600 leading-tight">
-          Monitoring Uttarakhand, Himachal, J&K, Ladakh, Sikkim, Arunachal, Assam, Meghalaya, Nagaland, Manipur, Mizoram, Tripura.
+          {t('map.monitoringRegionsText')}
         </p>
       </div>
 
@@ -181,10 +175,10 @@ const RiskMap = () => {
         <button
           onClick={resetToDefaultRegions}
           className="p-2.5 bg-white/95 hover:bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hover:text-blue-600 transition-colors shadow-lg flex items-center gap-1.5 text-xs font-semibold"
-          title="Reset Map to All 12 Focus Regions"
+          title={t('map.fitAllRegions')}
         >
           <Maximize2 className="w-4 h-4 text-blue-600" />
-          <span className="hidden sm:inline">Fit All 12 Regions</span>
+          <span className="hidden sm:inline">{t('map.fitAllRegions')}</span>
         </button>
       </div>
 
@@ -210,55 +204,55 @@ const RiskMap = () => {
             <div className="flex items-start justify-between mb-2 pr-6">
               <div>
                 <span className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">
-                  {activeZone.state} • {activeZone.regionGroup}
+                  {tRegion(activeZone.state)} • {tGroup(activeZone.regionGroup)}
                 </span>
                 <h3 className="font-bold text-lg text-gray-900 leading-tight">{activeZone.name}</h3>
                 <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                   <MapPin className="w-3 h-3 text-gray-400" />
-                  {activeZone.district} District
+                  {activeZone.district} {t('common.district')}
                 </p>
               </div>
               <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
-                {getRiskLabel(activeZone.riskLevel)}
+                {tHazardLevel(activeZone.riskLevel)}
               </span>
             </div>
 
             <div className="my-2.5 p-2 bg-red-50 border border-red-200 rounded-lg">
-              <span className="text-[10px] font-bold uppercase text-red-600 tracking-wider">Primary Threat</span>
+              <span className="text-[10px] font-bold uppercase text-red-600 tracking-wider">{t('map.primaryThreat')}</span>
               <p className="text-xs text-red-900 font-semibold">{activeZone.keyThreat}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 mb-3">
               <div className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
-                <div className="text-[10px] text-gray-500 uppercase font-medium">24h Rainfall</div>
+                <div className="text-[10px] text-gray-500 uppercase font-medium">{t('map.rainfall24h')}</div>
                 <div className="text-sm font-bold text-blue-600">{activeZone.stats.rainfall} mm</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
-                <div className="text-[10px] text-gray-500 uppercase font-medium">Soil Saturation</div>
+                <div className="text-[10px] text-gray-500 uppercase font-medium">{t('map.soilSaturation')}</div>
                 <div className="text-sm font-bold text-green-600">{activeZone.stats.soilMoisture}%</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
-                <div className="text-[10px] text-gray-500 uppercase font-medium">Deformation</div>
+                <div className="text-[10px] text-gray-500 uppercase font-medium">{t('map.deformation')}</div>
                 <div className="text-sm font-bold text-red-600">{activeZone.stats.deformation} mm</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-center border border-gray-100">
-                <div className="text-[10px] text-gray-500 uppercase font-medium">Risk Index</div>
+                <div className="text-[10px] text-gray-500 uppercase font-medium">{t('map.riskIndex')}</div>
                 <div className="text-sm font-bold text-orange-600">{activeZone.stats.riskScore}%</div>
               </div>
             </div>
 
             <div className="flex gap-2">
               <button
-                className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
-                onClick={() => alert(`Detailed sensor telemetries for ${activeZone.name} (${activeZone.state})`)}
+                className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs"
+                onClick={() => alert(t('map.telemetryAlertMessage', { name: activeZone.name, state: tRegion(activeZone.state) }))}
               >
-                Sensor Telemetry
+                {t('map.sensorTelemetryBtn')}
               </button>
               <button
-                className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
-                onClick={() => alert(`Evacuation advisory triggered for ${activeZone.name}`)}
+                className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs"
+                onClick={() => alert(t('map.evacAlertMessage', { name: activeZone.name }))}
               >
-                Issue Advisory
+                {t('map.issueAdvisoryBtn')}
               </button>
             </div>
           </motion.div>
@@ -269,14 +263,14 @@ const RiskMap = () => {
       <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-md rounded-xl border border-gray-200 p-3 shadow-xl">
         <p className="text-xs text-gray-700 font-bold mb-2 flex items-center gap-1">
           <Layers className="w-3.5 h-3.5 text-blue-600" />
-          Risk Levels
+          {t('map.riskLevelsTitle')}
         </p>
         <div className="space-y-1.5">
           {[
-            { level: 'severe', label: 'Severe Risk (≥85%)', color: '#dc2626' },
-            { level: 'high', label: 'High Risk (70-84%)', color: '#ef4444' },
-            { level: 'medium', label: 'Medium Risk (50-69%)', color: '#f59e0b' },
-            { level: 'low', label: 'Low Risk (<50%)', color: '#22c55e' },
+            { level: 'severe', label: t('hazardLevels.severeDesc'), color: '#dc2626' },
+            { level: 'high', label: t('hazardLevels.highDesc'), color: '#ef4444' },
+            { level: 'medium', label: t('hazardLevels.mediumDesc'), color: '#f59e0b' },
+            { level: 'low', label: t('hazardLevels.lowDesc'), color: '#22c55e' },
           ].map((item) => (
             <div key={item.level} className="flex items-center gap-2 text-[11px]">
               <div
@@ -293,11 +287,11 @@ const RiskMap = () => {
         </div>
         <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 text-[11px] text-gray-600">
           <div className="w-3 h-3 rounded-full bg-slate-800 border border-white" />
-          <span>Major Focus Cities</span>
+          <span>{t('map.majorFocusCities')}</span>
         </div>
       </div>
     </div>
   );
 };
 
-export default RiskMap;
+export default RiskMap;
