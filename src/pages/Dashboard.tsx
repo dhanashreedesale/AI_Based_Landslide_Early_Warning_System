@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AlertTriangle, MapPin, Clock, TrendingUp, ShieldCheck, CheckCircle2, SlidersHorizontal, Info } from 'lucide-react';
 import StatCard from '../components/Dashboard/StatCard';
 import RiskMap from '../components/Dashboard/RiskMap';
+import RiskHeatmap from '../components/Dashboard/RiskHeatmap';
 import AlertList from '../components/Dashboard/AlertList';
 import RainfallChart from '../components/Dashboard/RainfallChart';
 import { RegionFilterControl } from '../components/Dashboard/RegionFilterControl';
@@ -11,6 +12,7 @@ import { useTranslation } from '../i18n';
 
 const Dashboard = () => {
   const [selectedStat, setSelectedStat] = useState<string | null>(null);
+  const [mapView, setMapView] = useState<'polygon' | 'heatmap'>('polygon');
   const { selectedRegions, activeChartRegion, setActiveChartRegion } = useMapStore();
   const { alerts } = useAlertStore();
   const { t, tRegion } = useTranslation();
@@ -112,7 +114,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-20">
         {stats.map((stat) => (
           <StatCard
             key={stat.id}
@@ -123,7 +125,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Main Map & Live Alerts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative">
         <div className="lg:col-span-2 bg-white rounded-xl border border-light-200 overflow-hidden shadow-sm flex flex-col">
           <div className="p-4 border-b border-light-200 flex flex-wrap items-center justify-between gap-3 bg-gray-50/50">
@@ -136,12 +137,14 @@ const Dashboard = () => {
                 {t('dashboard.liveMapSubtitle')}
               </p>
             </div>
-
-            <RegionFilterControl />
           </div>
-
-          <div className="h-[520px] relative w-full">
-            <RiskMap />
+          
+          <div className="h-[500px] relative">
+            {mapView === 'heatmap' ? (
+              <RiskHeatmap />
+            ) : (
+              <RiskMap />
+            )}
           </div>
         </div>
 
@@ -165,8 +168,7 @@ const Dashboard = () => {
               ● {activeCount} {t('common.active')}
             </span>
           </div>
-
-          <div className="h-[520px] overflow-y-auto custom-scrollbar">
+          <div className="h-[468px] overflow-y-auto custom-scrollbar">
             <AlertList />
           </div>
         </div>
